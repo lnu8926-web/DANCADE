@@ -1,4 +1,3 @@
-// components/common/ToastContainer.tsx
 "use client";
 
 import { Toast } from "../../game/types/toast";
@@ -10,10 +9,10 @@ export default function ToastContainer({ toasts }: { toasts: Toast[] }) {
         <div
           key={toast.id}
           className={`
-                min-w-[360px]          /* ✅ 가로 크기 */
-                px-6 py-4              /* ✅ 패딩 키움 */
+                min-w-[360px]
+                px-6 py-4
                 rounded-lg
-                text-base              /* ✅ 글자 크기 */
+                text-base
                 font-medium
                 shadow-[0_0_18px_rgba(0,255,220,0.35)]
                 transition-all

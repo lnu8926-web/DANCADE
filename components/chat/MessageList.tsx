@@ -1,6 +1,3 @@
-// components/chat/MessageList.tsx
-// 채팅 메시지 리스트 컴포넌트
-
 import { useRef, useEffect } from "react";
 import styles from "./ChatFrame.module.css";
 import type { ChatMessage } from "@/hooks/chat/useChatSocket";
@@ -11,9 +8,6 @@ interface MessageListProps {
   onWaveClick: () => void;
 }
 
-/**
- * 채팅 메시지 리스트 컴포넌트
- */
 export function MessageList({
   messages,
   currentUsername,
@@ -21,12 +15,10 @@ export function MessageList({
 }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 메시지 추가 시 자동 스크롤
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 빈 상태
   if (messages.length === 0) {
     return (
       <div className={styles.messagesContainer}>
@@ -64,9 +56,6 @@ export function MessageList({
   );
 }
 
-/**
- * 메시지 타입에 따른 스타일 클래스 반환
- */
 function getMessageClass(msg: ChatMessage, currentUsername: string): string {
   if (msg.messageType === "system") {
     return styles.messageSystem;
@@ -80,9 +69,6 @@ function getMessageClass(msg: ChatMessage, currentUsername: string): string {
   return styles.message;
 }
 
-/**
- * 타임스탬프 포맷팅
- */
 function formatTimestamp(timestamp: number): string {
   return new Date(timestamp).toLocaleTimeString("ko-KR", {
     hour: "2-digit",

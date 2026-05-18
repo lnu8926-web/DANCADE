@@ -2,12 +2,9 @@ interface SelectButtonProps {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
-  size?: "sm" | "md"; // 크기 선택
+  size?: "sm" | "md";
 }
 
-/**
- * 버튼 그룹 컴포넌트 - 옵션 버튼들을 배치
- */
 export function ButtonGroup({ children }: { children: React.ReactNode }) {
   return <div className="flex flex-wrap gap-2.5">{children}</div>;
 }
@@ -40,9 +37,6 @@ export function SelectButton({
   );
 }
 
-/**
- * 액션 버튼 컴포넌트 - 주요 액션 버튼 (랜덤, 게임 시작 등)
- */
 export function ActionButton({
   onClick,
   children,

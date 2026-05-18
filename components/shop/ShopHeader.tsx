@@ -1,11 +1,10 @@
-// components/common/Header/Header.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
 
 interface HeaderProps {
   showBackToGame?: boolean;
-  rightSlot?: React.ReactNode; // 🔥 확장용
+  rightSlot?: React.ReactNode;
 }
 
 export default function Header({
@@ -16,7 +15,6 @@ export default function Header({
 
   return (
     <header className="absolute top-15 right-2 z-50 flex items-center gap-4">
-      {/* 🎮 게임으로 돌아가기 */}
       {showBackToGame && (
         <button
           onClick={() => router.push("/game")}
@@ -34,7 +32,6 @@ export default function Header({
         </button>
       )}
 
-      {/* 🔧 나중에 정렬 / 필터 버튼 들어갈 자리 */}
       {rightSlot}
 
     </header>

@@ -18,7 +18,6 @@ const AvatarPreview: React.FC<AvatarPreviewProps> = ({
   const gameRef = useRef<Phaser.Game | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // ref로 관리하여 Phaser 재시작 방지
   const onLoadRef = useRef(onLoad);
   useEffect(() => {
     onLoadRef.current = onLoad;
@@ -32,7 +31,6 @@ const AvatarPreview: React.FC<AvatarPreviewProps> = ({
       width: 400,
       height: 400,
       parent: containerRef.current,
-      // backgroundColor: "#2d2d2d",
        transparent: true,
       render: { pixelArt: true, roundPixels: true },
       physics: {
@@ -46,7 +44,6 @@ const AvatarPreview: React.FC<AvatarPreviewProps> = ({
     gameRef.current = game;
 
     game.events.once("ready", () => {
-      // CharacterCustomScene이 활성화되는 시점에 단 한 번만 실행
       game.scene.getScene("CharacterCustomScene").events.once("update", () => {
         onLoadRef.current?.();
       });

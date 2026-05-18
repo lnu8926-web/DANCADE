@@ -22,10 +22,6 @@ export function CustomizationPanel({
   const { assets } = lpcData;
   const gender = customization.gender as "male" | "female";
 
-  // const availableHairStyles = lpcSpriteManager.getAssetsByPart(lpcData, 'hair', gender);
-  // const availableTorsoStyles = lpcSpriteManager.getAssetsByPart(lpcData, 'torso', gender);
-  // const availableLegsStyles = lpcSpriteManager.getAssetsByPart(lpcData, 'legs', gender);
-  
   const filterBasic = <T extends { tier?: string }>(styles: T[]) =>
   styles.filter((style) => style.tier === "basic");
 
@@ -43,26 +39,21 @@ const availableLegsStyles = filterBasic(
 
 
 
-  // 범용 핸들러 함수
   const handleChange = useCallback(
-    // T는 CharacterState['parts']의 키여야 함 (예: 'body', 'hair', 'torso')
     <T extends keyof CharacterState["parts"]>(
       part: T,
-      // value는 업데이트될 styleId 또는 color를 포함
       value: { styleId?: string; color?: string }
     ) => {
       onChange((prev) => {
         if (!prev || !prev.parts) return prev;
 
-        // 1. 현재 파트 상태를 가져옴 (없으면 빈 객체 {})
         const prevPart = prev.parts[part] || {};
 
         const newPart = {
           ...prevPart,
-          ...value, // 새로운 styleId 또는 color를 덮어씀
+          ...value,
         };
 
-        // 2. 불변적으로 업데이트된 상태 반환
         return {
           ...prev,
           parts: {
@@ -79,7 +70,6 @@ const availableLegsStyles = filterBasic(
     <div>
       <h2 className="text-2xl mb-[30px]">외모 커스터마이징</h2>
 
-      {/* 성별 선택 */}
       <Section title="성별">
         <ButtonGroup>
           <SelectButton
@@ -97,7 +87,6 @@ const availableLegsStyles = filterBasic(
         </ButtonGroup>
       </Section>
 
-      {/* 피부색 선택 */}
       <Section title="피부색">
         <ButtonGroup>
           {palettes.skin_common.slice(0, 10).map((color: string) => (
@@ -116,7 +105,6 @@ const availableLegsStyles = filterBasic(
         </ButtonGroup>
       </Section>
 
-      {/* 눈 색상 선택 */}
       <Section title="눈 색상">
         <ButtonGroup>
           {palettes.eye_common.slice(0, 12).map((color: string) => (
@@ -131,7 +119,6 @@ const availableLegsStyles = filterBasic(
         </ButtonGroup>
       </Section>
 
-      {/* 헤어 스타일 선택 */}
       <Section title="헤어 스타일">
         <ButtonGroup>
           {availableHairStyles.map((style: PartStyle) => (
@@ -146,7 +133,6 @@ const availableLegsStyles = filterBasic(
         </ButtonGroup>
       </Section>
 
-      {/* 헤어 색상 선택 */}
       <Section title="헤어 색상">
         <ButtonGroup>
           {palettes.hair_common.slice(0, 12).map((color: string) => (
@@ -161,7 +147,6 @@ const availableLegsStyles = filterBasic(
         </ButtonGroup>
       </Section>
 
-      {/* 상의 스타일 선택 */}
       <Section title="상의 스타일">
         <ButtonGroup>
           {availableTorsoStyles.map((style) => (
@@ -176,7 +161,6 @@ const availableLegsStyles = filterBasic(
         </ButtonGroup>
       </Section>
 
-      {/* 상의 색상 선택 (Parts: 'torso') */}
       <Section title="상의 색상">
         <ButtonGroup>
           {palettes.clothes_common.slice(0, 12).map((color: string) => (
@@ -191,15 +175,12 @@ const availableLegsStyles = filterBasic(
         </ButtonGroup>
       </Section>
 
-      {/* 하의 스타일 선택 */}
       <Section title="하의 스타일">
         <ButtonGroup>
           {availableLegsStyles.map((style) => (
             <SelectButton
               key={style.id}
-              // ⭐️ 'legs' 파트의 styleId 속성에 접근
               active={customization.parts.legs?.styleId === style.id}
-              // ⭐️ 'legs' 파트를 대상으로 styleId를 업데이트
               onClick={() => handleChange("legs", { styleId: style.id })}
             >
               {style.name || style.id}
@@ -208,7 +189,6 @@ const availableLegsStyles = filterBasic(
         </ButtonGroup>
       </Section>
 
-      {/* 하의 색상 선택 */}
       <Section title="하의 색상">
         <ButtonGroup>
           {palettes.clothes_common.slice(0, 12).map((color: string) => (
@@ -223,8 +203,7 @@ const availableLegsStyles = filterBasic(
         </ButtonGroup>
       </Section>
 
-       {/* 하의 색상 선택 */}
-      <Section title="신발 색상">
+       <Section title="신발 색상">
         <ButtonGroup>
           {palettes.clothes_common.slice(0, 12).map((color: string) => (
             <SelectButton

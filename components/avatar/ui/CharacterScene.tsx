@@ -13,15 +13,12 @@ export default class CharacterScene extends Phaser.Scene {
   }
 
   preload() {
-    // [1] 리소스 로딩
     this.load.json("lpc_config", "/assets/lpc_assets.json");
 
-    // JSON 로드 완료 후 에셋 파싱
     this.load.on(
       Phaser.Loader.Events.FILE_COMPLETE + "-json-lpc_config",
       (key: string, type: string, data: LpcSprite) => {
         if (data && data.assets) {
-          // LpcLoader를 통해 이미지를 로드합니다.
           LpcLoader.loadAssets(this, data);
         }
       }

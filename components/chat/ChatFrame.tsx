@@ -1,16 +1,5 @@
 "use client";
 
-// =================================================================
-// ChatFrame.tsx - 채팅 프레임 컴포넌트 (리팩토링 버전)
-// =================================================================
-// 기존 475줄 → 리팩토링 후 약 175줄
-// 추출된 모듈:
-// - hooks/chat/useChatSocket.ts (소켓 연결 및 메시지 관리)
-// - components/chat/MessageList.tsx (메시지 목록 렌더링)
-// - components/chat/ChatInput.tsx (채팅 입력 영역)
-// - components/chat/GuestQuickPanel.tsx (게스트 퀵메시지 패널)
-// =================================================================
-
 import { useState, useEffect } from "react";
 import RegisterModal from "@/components/auth/RegisterModal";
 import { useToast } from "@/components/common/ToastProvider";
@@ -27,7 +16,6 @@ interface ChatFrameProps {
 export default function ChatFrame({ onClose }: ChatFrameProps) {
   const { showToast } = useToast();
 
-  // 소켓 및 메시지 관리 훅
   const {
     messages,
     username,
@@ -38,12 +26,10 @@ export default function ChatFrame({ onClose }: ChatFrameProps) {
     checkUserStatus,
   } = useChatSocket();
 
-  // UI 상태
   const [isFullHeight, setIsFullHeight] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
 
-  // 게임 씬 이벤트 리스너 (채팅창 표시/숨김)
   useEffect(() => {
     const handleChatShow = () => setIsHidden(false);
     const handleChatHide = () => setIsHidden(true);
@@ -57,7 +43,6 @@ export default function ChatFrame({ onClose }: ChatFrameProps) {
     };
   }, []);
 
-  // 메시지 전송 핸들러
   const handleSendMessage = async (message: string) => {
     if (isGuestUser) {
       alert("채팅은 회원가입 후 사용할 수 있습니다.");
@@ -66,15 +51,13 @@ export default function ChatFrame({ onClose }: ChatFrameProps) {
     await sendMessage(message);
   };
 
-  // 인사 클릭 핸들러
   const handleWaveClick = () => {
     sendQuickMessage("👋");
   };
 
-  // 회원가입 성공 핸들러
   const handleRegisterSuccess = () => {
     setShowRegisterModal(false);
-    checkUserStatus(); // 로컬스토리지에서 isGuest: false 읽어서 채팅 활성화
+    checkUserStatus();
     showToast({
       type: "success",
       message: "환영합니다! 회원가입이 완료되었습니다.",
@@ -90,7 +73,6 @@ export default function ChatFrame({ onClose }: ChatFrameProps) {
           display: isHidden ? "none" : "flex",
         }}
       >
-        {/* 헤더 */}
         <ChatHeader
           isFullHeight={isFullHeight}
           onToggleHeight={() => setIsFullHeight(!isFullHeight)}
@@ -98,14 +80,12 @@ export default function ChatFrame({ onClose }: ChatFrameProps) {
           onClose={onClose}
         />
 
-        {/* 메시지 목록 */}
         <MessageList
           messages={messages}
           currentUsername={username}
           onWaveClick={handleWaveClick}
         />
 
-        {/* 입력 영역 */}
         {isGuestUser ? (
           <GuestQuickPanel
             onQuickMessage={sendQuickMessage}
@@ -116,7 +96,6 @@ export default function ChatFrame({ onClose }: ChatFrameProps) {
         )}
       </div>
 
-      {/* 최소화된 채팅창 버튼 */}
       {isHidden && (
         <button
           className={styles.minimizedChatBtn}
@@ -127,7 +106,6 @@ export default function ChatFrame({ onClose }: ChatFrameProps) {
         </button>
       )}
 
-      {/* 회원가입 모달 */}
       <RegisterModal
         isOpen={showRegisterModal}
         onClose={() => setShowRegisterModal(false)}
@@ -137,9 +115,6 @@ export default function ChatFrame({ onClose }: ChatFrameProps) {
   );
 }
 
-// =================================================================
-// 내부 컴포넌트: 채팅 헤더
-// =================================================================
 interface ChatHeaderProps {
   isFullHeight: boolean;
   onToggleHeight: () => void;

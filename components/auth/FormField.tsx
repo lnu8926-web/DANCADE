@@ -1,6 +1,3 @@
-// components/auth/FormField.tsx
-// 재사용 가능한 폼 필드 컴포넌트
-
 import { forwardRef, InputHTMLAttributes, ReactNode } from "react";
 import type { CheckStatus } from "@/hooks/auth/useRegisterForm";
 
@@ -14,10 +11,6 @@ interface FormFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   rightElement?: ReactNode;
 }
 
-/**
- * 재사용 가능한 폼 필드 컴포넌트
- * - 라벨, 입력, 에러 메시지, 중복 체크 상태 통합
- */
 export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
   (
     {
@@ -72,14 +65,12 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
             {rightElement}
           </div>
 
-          {/* 에러 메시지 */}
           {showError && (
             <p className="text-left text-(--color-pink)-sm mt-2">
               {error}
             </p>
           )}
 
-          {/* 중복 체크 상태 */}
           {showStatus && (
             <p
               className={`text-left text-sm mt-2 ${getStatusColor(
@@ -90,7 +81,6 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
             </p>
           )}
 
-          {/* 최소 길이 힌트 */}
           {showMinLengthHint && (
             <p className="text-left text-gray-500 text-xs mt-2">
               {minLengthHint.message}
@@ -104,7 +94,6 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
 
 FormField.displayName = "FormField";
 
-// 헬퍼 함수들
 function getStatusColor(status?: CheckStatus): string {
   switch (status) {
     case "checking":
@@ -131,7 +120,6 @@ function getStatusMessage(status?: CheckStatus): string {
   }
 }
 
-// 비밀번호 전용 (라벨 줄바꿈)
 interface PasswordFieldProps extends Omit<FormFieldProps, "label"> {
   labelLines: [string, string];
 }

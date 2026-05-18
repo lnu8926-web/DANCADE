@@ -1,5 +1,3 @@
-// 공통 윈도우 디자인 창
-
 import Image from "next/image";
 import windowClose from "@/public/assets/icons/window-close.svg";
 import windowMaximize from "@/public/assets/icons/window-maximize.svg";
@@ -42,7 +40,6 @@ export default function Window({
         ${isModal ? "" : "drop-shadow-[0_0_14px_rgba(108,173,247,0.55)]"}
       `}
     >
-      {/* ✅ 페이지에서만 배경 */}
       {!isModal && (
         <div className="absolute inset-0 bg-[url('/assets/background/common.png')] bg-cover bg-center bg-no-repeat opacity-15 -z-10" />
       )}
@@ -84,7 +81,6 @@ export default function Window({
             ${isModal ? "p-6" : "py-15 px-8 min-h-[800px] lg:max-h-[800px] gap-8"}
           `}
         >
-          {/* ✅ 페이지에서만 뒤로가기 */}
           {!isModal && (
             <Image
               src={back}

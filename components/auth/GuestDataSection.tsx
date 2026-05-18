@@ -1,6 +1,3 @@
-// components/auth/GuestDataSection.tsx
-// 게스트 데이터 불러오기 섹션 컴포넌트
-
 interface GuestDataSectionProps {
   hasGuestData: boolean;
   guestDataSelected: boolean;
@@ -11,11 +8,6 @@ interface GuestDataSectionProps {
   onReselect: () => void;
 }
 
-/**
- * 게스트 데이터 불러오기 UI
- * - 불러오기/아니요 선택
- * - 선택 완료 후 확인 메시지
- */
 export function GuestDataSection({
   hasGuestData,
   guestDataSelected,
@@ -27,7 +19,6 @@ export function GuestDataSection({
 }: GuestDataSectionProps) {
   if (!hasGuestData) return null;
 
-  // 아직 선택하지 않은 상태
   if (!guestDataSelected) {
     return (
       <div className="bg-(--color-pink)/10er-2 border-(--color-pink)/60ded-lg px-5 py-4 mb-6">
@@ -65,7 +56,6 @@ export function GuestDataSection({
     );
   }
 
-  // 선택 완료 상태
   return (
     <div className="bg-green-100 border-2 border-green-500 rounded-lg px-5 py-4 mb-6">
       <div className="flex flex-col gap-3 items-center">
@@ -87,7 +77,6 @@ export function GuestDataSection({
   );
 }
 
-// 내부 버튼 컴포넌트
 function GuestDataButton({
   selected,
   onClick,

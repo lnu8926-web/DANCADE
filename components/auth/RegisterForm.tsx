@@ -52,7 +52,6 @@ export default function RegisterForm({
   const passwordValue = watch("password");
   const confirmPasswordValue = watch("confirmPassword");
 
-  // 닉네임 생성 버튼
   const nicknameGenerateButton = (
     <button
       type="button"
@@ -86,7 +85,6 @@ export default function RegisterForm({
       <fieldset className="form-fields space-y-6">
         <legend className="sr-only">회원가입 정보 입력</legend>
 
-        {/* 게스트 데이터 섹션 */}
         <GuestDataSection
           hasGuestData={hasGuestData}
           guestDataSelected={guestDataSelected}
@@ -100,7 +98,6 @@ export default function RegisterForm({
           onReselect={() => setGuestDataSelected(false)}
         />
 
-        {/* 아이디 */}
         <FormField
           id="userid"
           type="text"
@@ -119,7 +116,6 @@ export default function RegisterForm({
           {...register("userid")}
         />
 
-        {/* 닉네임 */}
         <FormField
           id="nickname"
           type="text"
@@ -135,7 +131,6 @@ export default function RegisterForm({
           {...register("nickname")}
         />
 
-        {/* 비밀번호 */}
         <FormField
           id="password"
           type="password"
@@ -148,7 +143,6 @@ export default function RegisterForm({
           {...register("password")}
         />
 
-        {/* 비밀번호 확인 */}
         <PasswordConfirmField
           id="confirmPassword"
           type="password"
@@ -162,14 +156,12 @@ export default function RegisterForm({
         />
       </fieldset>
 
-      {/* 서버 에러 */}
       {serverError && (
         <div className="mt-4 p-3 bg-red-100 text-red-600 rounded-md text-sm font-bold">
           {serverError}
         </div>
       )}
 
-      {/* 버튼 */}
       <div className="button-group flex gap-3 mt-8 justify-end">
         {onCancel ? (
           <button

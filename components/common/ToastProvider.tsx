@@ -1,4 +1,3 @@
-// components/common/ToastProvider.tsx
 "use client";
 
 import { createContext, useContext, useState } from "react";
@@ -18,7 +17,6 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     const id = crypto.randomUUID();
     setToasts((prev) => [...prev, { ...toast, id }]);
 
-    // ⏱ 자동 제거
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 2500);
