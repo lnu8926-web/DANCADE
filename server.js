@@ -23,10 +23,13 @@ const cors = require("cors");
 
 const app = express();
 const server = http.createServer(app);
+const ALLOWED_ORIGINS = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(",").map((o) => o.trim())
+  : ["http://localhost:3000"];
+
 const io = socketIo(server, {
   cors: {
-    // origin: ["http://3.25.232.135:3000","http://localhost:3000"],
-    origin: "http://localhost:3000",
+    origin: ALLOWED_ORIGINS,
     methods: ["GET", "POST"],
     credentials: true,
   },
