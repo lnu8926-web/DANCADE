@@ -46,9 +46,7 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} ${pressStart2P.variable} ${notoSansKR.variable} font-neo antialiased`}
       >
-        <ToastProvider>
-        {children}
-        </ToastProvider>
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

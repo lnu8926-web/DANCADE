@@ -13,6 +13,13 @@ import { useLogin } from "@/hooks/auth/useLogin";
 import { getCurrentUser } from "@/lib/utils/auth";
 import { STORAGE_KEY } from "@/constants/character";
 
+const gameList = [
+  { src: brickBreaker, alt: "벽돌깨기 게임" },
+  { src: pingPong, alt: "핑퐁 게임" },
+  { src: brickBreaker, alt: "벽돌깨기 게임" },
+  { src: pingPong, alt: "핑퐁 게임" },
+];
+
 export default function LoginIdPage() {
   const router = useRouter();
   const { login, isLoading: isAuthLoading } = useAuth();
@@ -26,30 +33,21 @@ export default function LoginIdPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const gameList = [
-    { src: brickBreaker, alt: "벽돌깨기 게임" },
-    { src: pingPong, alt: "핑퐁 게임" },
-    { src: brickBreaker, alt: "벽돌깨기 게임" },
-    { src: pingPong, alt: "핑퐁 게임" },
-  ];
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
-    setErrorMessage(""); // 입력 시 에러 메시지 초기화
+    setErrorMessage("");
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // 빈 값 체크
     if (!formData.username || !formData.password) {
       setErrorMessage("아이디와 비밀번호를 입력해주세요.");
       return;
     }
 
     try {
-      // Supabase 로그인
       await login({
         userid: formData.username,
         password: formData.password,
@@ -60,16 +58,13 @@ export default function LoginIdPage() {
         throw new Error("로그인 후 유저 정보를 불러올 수 없습니다.");
       }
 
-      // 로그인 된 유저의 케릭터 정보 조회 후 로컬스토리지에 동기화
       const result = await readCharacter(currentUser.uuid!);
       const characterSkin = result?.characterSkin;
 
       if (characterSkin) {
-        //기존 캐릭터 있음 → 선택창 스킵
         localStorage.setItem(STORAGE_KEY, JSON.stringify(characterSkin));
         router.push("/game");
       } else {
-        //없음 → 캐릭터 생성
         router.push("/character-select");
       }
     } catch (error) {
@@ -79,19 +74,6 @@ export default function LoginIdPage() {
           : "아이디 또는 비밀번호가 일치하지 않습니다.";
       setErrorMessage(errorMsg);
     }
-  };
-
-  const handleSignup = () => {
-    router.push("/auth/register");
-  };
-
-  const handleGuestLogin = () => {
-    // 게스트 사용자 생성 또는 불러오기
-    const guestUser = getOrCreateGuestUser();
-    console.log("게스트 로그인:", guestUser);
-
-    // 캐릭터 선택창으로 이동
-    router.push("/character-select");
   };
 
   return (
@@ -107,7 +89,7 @@ export default function LoginIdPage() {
           </header>
 
           <form
-            className="login-form w-full max-w-[550px] px-5 py-6 bg-[var(--color-white)] border-box"
+            className="login-form w-full max-w-[550px] px-5 py-6 bg-white border-box"
             onSubmit={handleSubmit}
           >
             <div>
@@ -115,7 +97,7 @@ export default function LoginIdPage() {
               <div className="form-field mb-6 flex flex-col lg:flex-row lg:items-center">
                 <label
                   htmlFor="username"
-                  className="text-[var(--color-black)] mb-2 lg:mb-0 lg:w-[125px] text-lg"
+                  className="text-black lg:w-[125px] text-lg"
                 >
                   아이디
                 </label>
@@ -127,7 +109,7 @@ export default function LoginIdPage() {
                   placeholder="아이디를 입력하세요."
                   autoComplete="username"
                   disabled={isAuthLoading}
-                  className="w-full py-4 px-4 border border-[var(--color-navy)] 
+                  className="w-full py-4 px-4 border border-(--color-navy)
                              placeholder:text-slate-gray text-black 
                              focus:outline-none focus:ring-0
                              disabled:bg-gray-100 disabled:cursor-not-allowed"
@@ -138,7 +120,7 @@ export default function LoginIdPage() {
               <div className="form-field flex flex-col lg:flex-row lg:items-center">
                 <label
                   htmlFor="password"
-                  className="text-[var(--color-black)] mb-2 lg:mb-0 lg:w-[125px] text-lg"
+                  className="text-black lg:w-[125px] text-lg"
                 >
                   비밀번호
                 </label>
@@ -151,7 +133,7 @@ export default function LoginIdPage() {
                     placeholder="비밀번호를 입력하세요."
                     autoComplete="current-password"
                     disabled={isAuthLoading}
-                    className="w-full py-4 px-4 pr-12 border border-[var(--color-navy)] 
+                    className="w-full py-4 px-4 pr-12 border border-(--color-navy) 
                                placeholder:text-slate-gray text-black 
                                focus:outline-none focus:ring-0
                                disabled:bg-gray-100 disabled:cursor-not-allowed"
@@ -170,7 +152,7 @@ export default function LoginIdPage() {
 
               {/* 에러 메시지 */}
               {errorMessage && (
-                <p className="text-left text-[var(--color-pink)] mt-3">
+                <p className="text-left text-(--color-pink) mt-3">
                   {errorMessage}
                 </p>
               )}
@@ -181,7 +163,10 @@ export default function LoginIdPage() {
               {/* 왼쪽: 게스트 로그인 */}
               <button
                 type="button"
-                onClick={handleGuestLogin}
+                onClick={() => {
+                  getOrCreateGuestUser();
+                  router.push("/character-select");
+                }}
                 disabled={isAuthLoading}
                 className="login-button pixelBtn pixelBtn--pink cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -199,7 +184,7 @@ export default function LoginIdPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={handleSignup}
+                  onClick={() => router.push("/auth/register")}
                   disabled={isAuthLoading}
                   className="login-button pixelBtn pixelBtn--cyan cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -219,7 +204,7 @@ export default function LoginIdPage() {
             {gameList.map((game, idx) => (
               <li
                 key={idx}
-                className="game-item relative z-2 w-[42vw] sm:w-[33vw] lg:w-[30vw] max-w-[220px] aspect-[220/300] border border-[var(--color-cyan)] border-10 shadow-[0px_4px_40px_rgba(0,255,255,0.25)]"
+                className="game-item relative z-2 w-[42vw] sm:w-[33vw] lg:w-[30vw] max-w-[220px] aspect-220/300 border border-(--color-cyan) shadow-[0px_4px_40px_rgba(0,255,255,0.25)]"
               >
                 <Image
                   src={game.src}
