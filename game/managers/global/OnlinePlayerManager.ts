@@ -10,6 +10,7 @@ import {
   OnlinePlayer,
   PlayerMoveData,
 } from "@/types/onlinePlayer";
+import type { CharacterState } from "@/components/avatar/utils/LpcTypes";
 
 export class OnlinePlayerManager {
   private socket!: Socket;
@@ -231,7 +232,7 @@ export class OnlinePlayerManager {
 
     // 아바타 커스텀 정보가 있으면 적용
     if (player.customization) {
-      playerAvatar.setCustomPart(player.customization);
+      playerAvatar.setCustomPart(player.customization as CharacterState);
     } else {
       // 기본 아바타 (여캐)
       playerAvatar.setDefaultPart("female");

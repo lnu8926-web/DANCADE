@@ -4,11 +4,11 @@
 import { MainScene } from "@/game/scenes/core/MainScene";
 import { AvatarManager } from "./AvatarManager";
 import { NoticeUIManager } from "./ui/NoticeUIManager";
-import { RPSGameUIManager, Choice } from "./ui/RPSGameUIManager";
+import { RPSGameUIManager } from "./ui/RPSGameUIManager";
 import { ChoseongUIManager } from "./ui/ChoseongUIManager";
 import { RankingUIManager } from "./ui/RankingUIManager";
 
-export { Choice } from "./ui/RPSGameUIManager";
+export type { Choice } from "./ui/RPSGameUIManager";
 
 export class UIManager {
   private scene: MainScene;

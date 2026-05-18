@@ -2,7 +2,7 @@ import {
   RoomListResponse,
   RoomNetworkCallbacks,
 } from "@/game/types/multiplayer/network.types";
-import { RoomData } from "@/game/types/omok";
+import { RoomData } from "@/game/types/multiplayer/room.types";
 import { Socket } from "socket.io-client";
 
 export abstract class BaseRoomNetworkManager {
