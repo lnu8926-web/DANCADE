@@ -24,32 +24,16 @@ import {
   type PartCategory,
   type ColorCategory,
 } from "@/constants/inventory";
+import type { AvatarDataManager } from "@/game/managers/global/AvatarDataManager";
+import type { AvatarManager } from "@/game/managers/global/AvatarManager";
+import type { PartType } from "@/components/avatar/utils/LpcTypes";
+import type { InventoryItem } from "@/lib/supabase/inventory";
 
-// 전역 window 타입 확장
-interface WindowWithManagers extends Window {
+// global.d.ts의 Window 선언(unknown)을 좁혀서 사용하기 위한 로컬 타입
+type WindowWithManagers = typeof window & {
   __avatarDataManager?: AvatarDataManager;
   __avatarManager?: AvatarManager;
-}
-
-interface AvatarDataManager {
-  customization: {
-    parts: Record<string, { color?: string; styleId?: string }>;
-  } | null;
-}
-
-interface AvatarManager {
-  getPosition: () => { x: number; y: number } | null;
-}
-
-interface InventoryItem {
-  userItemId: string;
-  name: string;
-  imageUrl: string;
-  isEquipped: boolean;
-  category: string;
-  styleKey: string;
-  itemId: string;
-}
+};
 
 /* =========================
  * Inventory Component
@@ -140,6 +124,7 @@ export default function Inventory() {
   // 파츠 장착
   async function onEquipPart(item: InventoryItem) {
     if (!avatarDataManager || !avatarManager || !user) return;
+    if (!item.styleKey) return;
     const current = avatarDataManager.customization;
     if (!current) return;
 
@@ -167,7 +152,7 @@ export default function Inventory() {
     const targetParts = COLOR_CATEGORY_TO_PART[category];
     if (!targetParts) return;
 
-    const next = buildNextColorState(current, targetParts as readonly string[], color);
+    const next = buildNextColorState(current, targetParts as readonly PartType[], color);
     applyAvatarState(next, avatarDataManager, avatarManager);
     forceRender((v) => v + 1);
 
