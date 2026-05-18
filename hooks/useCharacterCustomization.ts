@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 
 import type { CharacterState, LpcSprite } from "@/components/avatar/utils/LpcTypes";
 import { LpcSpriteManager } from "@/game/managers/global/LpcSpriteManager";
 
 export function useCharacterCustomization(lpcData: LpcSprite | null) {
-  const lpcSpriteManager = new LpcSpriteManager();
+  const lpcSpriteManager = useMemo(() => new LpcSpriteManager(), []);
   const [customization, setCustomization] = useState<CharacterState | null>(
     null
   );
@@ -21,7 +21,7 @@ export function useCharacterCustomization(lpcData: LpcSprite | null) {
       console.error("기본 아바타값 생성 실패:", error);
       setIsInitialized(true);
     }
-  }, [lpcData]);
+  }, [lpcData, lpcSpriteManager]);
 
   const handleRandomize = useCallback(() => {
     if (!lpcData || !customization) return;
@@ -32,7 +32,7 @@ export function useCharacterCustomization(lpcData: LpcSprite | null) {
     } catch (error) {
       console.error("랜덤 생성에 실패했습니다:", error);
     }
-  }, [lpcData, customization]);
+  }, [lpcData, customization, lpcSpriteManager]);
 
   const handleGenderChange = useCallback(
     (gender: "male" | "female") => {
@@ -67,7 +67,7 @@ export function useCharacterCustomization(lpcData: LpcSprite | null) {
         } as CharacterState;
       });
     },
-    [lpcData, customization]
+    [lpcData, customization, lpcSpriteManager]
   );
 
   return {
