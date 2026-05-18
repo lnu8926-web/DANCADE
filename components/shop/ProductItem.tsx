@@ -35,7 +35,7 @@ export default function ProductItem({ product, onSelectItem, onBuyItem }: Produc
           ${
             product.isOwned
               ? "bg-black"
-              : "group-hover:translate-x-[-2px] group-hover:translate-y-[-2px]"
+              : "group-hover:-translate-x-0.5 group-hover:-translate-y-0.5"
           }
         `}
       >

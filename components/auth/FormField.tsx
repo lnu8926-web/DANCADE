@@ -52,9 +52,9 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
             isModal ? "w-full lg:w-[100px]" : "lg:w-[140px]"
           }`}
         >
-          <span className="inline-block bg-[var(--color-pink)]/10 px-3 py-2 rounded-md lg:bg-transparent lg:px-0 lg:py-0">
+          <span className="inline-block bg-(--color-pink)/10 px-3 py-2 rounded-md lg:bg-transparent lg:px-0 lg:py-0">
             {label}{" "}
-            <span className="text-[var(--color-pink)] font-bold">*</span>
+            <span className="text-(--color-pink)-bold">*</span>
           </span>
         </label>
         <div className="w-full">
@@ -64,7 +64,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
               value={value}
               className={`${
                 rightElement ? "flex-1" : "w-full"
-              } py-4 px-4 border border-[var(--color-navy)]
+              } py-4 px-4 border border-(--color-navy)
                 placeholder:text-slate-gray text-black 
                 focus:outline-none focus:ring-0`}
               {...inputProps}
@@ -74,7 +74,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
 
           {/* 에러 메시지 */}
           {showError && (
-            <p className="text-left text-[var(--color-pink)] text-sm mt-2">
+            <p className="text-left text-(--color-pink)-sm mt-2">
               {error}
             </p>
           )}
@@ -150,24 +150,24 @@ export const PasswordConfirmField = forwardRef<
           isModal ? "w-full lg:w-[100px]" : "lg:w-[140px]"
         }`}
       >
-        <span className="inline-block bg-[var(--color-pink)]/10 px-3 py-2 rounded-md lg:bg-transparent lg:px-0 lg:py-0">
+        <span className="inline-block bg-(--color-pink)/10 py-2 rounded-md lg:bg-transparent lg:px-0 lg:py-0">
           {labelLines[0]}
           <br className="hidden lg:block" />
           {labelLines[1]}{" "}
-          <span className="text-[var(--color-pink)] font-bold">*</span>
+          <span className="text-(--color-pink) font-bold">*</span>
         </span>
       </label>
       <div className="w-full">
         <input
           ref={ref}
           value={value}
-          className="w-full py-4 px-4 border border-[var(--color-navy)]
+          className="w-full py-4 px-4 border border-(--color-navy)
               placeholder:text-slate-gray text-black 
               focus:outline-none focus:ring-0"
           {...inputProps}
         />
         {error && inputValue && (
-          <p className="text-left text-[var(--color-pink)] text-sm mt-2">
+          <p className="text-left text-(--color-pink) text-sm mt-2">
             {error}
           </p>
         )}

@@ -62,8 +62,8 @@ export default function RegisterForm({
         await checkDuplicate("nickname", newNickname, setNicknameCheckStatus);
       }}
       disabled={isGenerating}
-      className="px-4 py-2 bg-[var(--color-pink)] text-white font-bold rounded-lg 
-        hover:bg-[var(--color-pink)]/90 transition-colors duration-200
+      className="px-4 py-2 bg-(--color-pink) text-white font-bold rounded-lg 
+        hover:bg-(--color-pink)/90 transition-colors duration-200
         disabled:bg-gray-400 disabled:cursor-not-allowed
         whitespace-nowrap text-sm"
       title="랜덤 닉네임 생성"
@@ -74,7 +74,7 @@ export default function RegisterForm({
 
   return (
     <form
-      className={`signup-form w-full bg-[var(--color-white)] ${
+      className={`signup-form w-full bg-white ${
         isModal ? "" : "max-w-[515px] px-5 py-6"
       }`}
       onSubmit={handleSubmit(onSubmit)}

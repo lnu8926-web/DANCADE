@@ -51,12 +51,12 @@ export default function Window({
         className={`
           ${isModal ? "w-full" : "max-w-[1400px] w-full"}
           m-auto
-          border border-[var(--color-navy)]
+          border border-(--color-navy)
           ${className}
         `}
       >
         {/* 핑크색 타이틀바 */}
-        <div className="window-header bg-[var(--color-pink)] flex items-center justify-between px-4 py-3">
+        <div className="window-header bg-(--color-pink) flex items-center justify-between px-4 py-3">
           {/* 좌측 아이콘 */}
           <button className="window-icon" onClick={handleClose}>
             <Image src={windowClose} alt="" />
@@ -79,7 +79,7 @@ export default function Window({
         <div
           className={`
             window-content relative 
-            bg-[var(--color-dark-blue)]
+            bg-(--color-dark-blue)
             flex flex-col items-center justify-center
             ${isModal ? "p-6" : "py-15 px-8 min-h-[800px] lg:max-h-[800px] gap-8"}
           `}

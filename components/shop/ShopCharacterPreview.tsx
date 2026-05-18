@@ -67,7 +67,7 @@ export default function ShopCharacterPreview({ character }: Props) {
             z-0
             left-1/2
             -translate-x-1/2
-            bottom-[-6px]
+            -bottom-1.5
             w-28 h-4
             rounded-full
             bg-cyan-400

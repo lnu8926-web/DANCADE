@@ -78,7 +78,7 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
                 key={rank.id}
                 className={`flex justify-between items-center p-3 rounded-lg transition-all ${
                   rankNumber <= 3
-                    ? "bg-gradient-to-r from-yellow-600/30 to-yellow-500/10 border border-yellow-500/30"
+                    ? "bg-linear-to-r from-yellow-600/30 to-yellow-500/10 border border-yellow-500/30"
                     : "bg-gray-700/50 hover:bg-gray-700"
                 }`}
               >

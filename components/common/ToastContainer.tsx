@@ -5,7 +5,7 @@ import { Toast } from "../../game/types/toast";
 
 export default function ToastContainer({ toasts }: { toasts: Toast[] }) {
   return (
-    <div className="fixed bottom-8 right-8 z-[9999] flex flex-col gap-3">
+    <div className="fixed bottom-8 right-8 z-9999 flex flex-col gap-3">
       {toasts.map((toast) => (
         <div
           key={toast.id}
