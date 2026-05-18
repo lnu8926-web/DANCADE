@@ -1,16 +1,15 @@
-// hooks/auth/useRegisterForm.ts
-// 회원가입 폼 로직 훅
-
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { registerSchema, RegisterInput } from "@/lib/validations/auth";
+
 import { useAuth } from "@/hooks/auth/useAuth";
 import { useGuestAuth } from "@/hooks/useGuestAuth";
 import { useDebounce } from "@/hooks/useDebounce";
+
+import { registerSchema, RegisterInput } from "@/lib/validations/auth";
 import { generateGuestNickname } from "@/lib/utils/guestNickname";
 import { supabase } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
 
 export type CheckStatus = "idle" | "checking" | "available" | "duplicate";
 
@@ -25,7 +24,6 @@ export interface UseRegisterFormReturn {
   serverError: string;
   onSubmit: SubmitHandler<RegisterInput>;
 
-  // 중복 체크
   userIdCheckStatus: CheckStatus;
   nicknameCheckStatus: CheckStatus;
   checkDuplicate: (
@@ -34,7 +32,6 @@ export interface UseRegisterFormReturn {
     setStatus: React.Dispatch<React.SetStateAction<CheckStatus>>
   ) => Promise<void>;
 
-  // 게스트 데이터
   hasGuestData: boolean;
   guestNickname: string;
   guestPoints: number;
@@ -43,12 +40,10 @@ export interface UseRegisterFormReturn {
   setShouldLoadGuestData: React.Dispatch<React.SetStateAction<boolean>>;
   setGuestDataSelected: React.Dispatch<React.SetStateAction<boolean>>;
 
-  // 닉네임 생성
   isGenerating: boolean;
   generateAvailableNickname: () => Promise<string>;
   setNicknameCheckStatus: React.Dispatch<React.SetStateAction<CheckStatus>>;
 
-  // 입력 포커스 관리
   handleFocus: () => void;
   handleBlur: () => void;
   unlockInput: () => void;
@@ -88,7 +83,6 @@ export function useRegisterForm({
   const debouncedUserId = useDebounce(userIdValue, 500);
   const debouncedNickname = useDebounce(nicknameValue, 500);
 
-  // 통합된 중복 체크 함수
   const checkDuplicate = useCallback(
     async (
       field: "userid" | "nickname",
@@ -128,7 +122,6 @@ export function useRegisterForm({
     []
   );
 
-  // 게스트 정보 확인
   useEffect(() => {
     const user = getStoredUser();
     if (user && user.isGuest) {
@@ -138,7 +131,6 @@ export function useRegisterForm({
     }
   }, [getStoredUser]);
 
-  // 불러오기/아니요 선택 시 닉네임 자동 입력/초기화
   useEffect(() => {
     if (shouldLoadGuestData && guestNickname) {
       setValue("nickname", guestNickname, { shouldValidate: true });
@@ -149,7 +141,6 @@ export function useRegisterForm({
     }
   }, [shouldLoadGuestData, guestNickname, setValue]);
 
-  // 디바운싱된 아이디로 중복 체크
   useEffect(() => {
     if (debouncedUserId) {
       checkDuplicate("userid", debouncedUserId, setUserIdCheckStatus);
@@ -158,14 +149,12 @@ export function useRegisterForm({
     }
   }, [debouncedUserId, checkDuplicate]);
 
-  // 디바운싱된 닉네임으로 중복 체크
   useEffect(() => {
     if (debouncedNickname) {
       checkDuplicate("nickname", debouncedNickname, setNicknameCheckStatus);
     }
   }, [debouncedNickname, checkDuplicate]);
 
-  // 사용 가능한 랜덤 닉네임 생성
   const generateAvailableNickname = async (): Promise<string> => {
     setIsGenerating(true);
     let newNickname = generateGuestNickname();
@@ -205,7 +194,6 @@ export function useRegisterForm({
   const onSubmit: SubmitHandler<RegisterInput> = async (data) => {
     setServerError("");
 
-    // 중복 체크 검증
     if (userIdCheckStatus !== "available") {
       setServerError("아이디 중복 확인이 필요합니다.");
       return;
@@ -216,14 +204,12 @@ export function useRegisterForm({
     }
 
     try {
-      // 1. 회원가입 처리
       const newUser = await registerUser({
         userid: data.userid,
         nickname: data.nickname,
         password: data.password,
       });
 
-      // 2. 포인트 승계 처리 (불러오기 선택 시)
       if (shouldLoadGuestData && guestPoints > 0) {
         const totalPoints = newUser.total_points + guestPoints;
 
@@ -237,21 +223,16 @@ export function useRegisterForm({
           setServerError(
             "회원가입은 완료되었으나 포인트 승계에 실패했습니다. 고객센터에 문의해주세요."
           );
-        } else {
-          console.log(`포인트 승계 완료: ${guestPoints}P → 총 ${totalPoints}P`);
         }
       }
 
-      // 3. 게스트 데이터 초기화
       clearGuestData();
 
-      // 4. 자동 로그인 처리 (DB에서 조회 후 로컬스토리지 저장)
       await login({
         userid: data.userid,
         password: data.password,
       });
 
-      // 5. 완료 처리
       if (onSuccess) {
         onSuccess();
       } else {
@@ -264,7 +245,6 @@ export function useRegisterForm({
     }
   };
 
-  // 입력 필드 포커스 관리 (게임 키 잠금)
   const handleFocus = () => {
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event("game:input-locked"));
@@ -278,7 +258,6 @@ export function useRegisterForm({
     }, 10);
   };
 
-  // 폼 닫힐 때 명시적으로 잠금 해제 (취소 버튼 등)
   const unlockInput = () => {
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event("game:input-unlocked"));

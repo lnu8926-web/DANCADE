@@ -10,7 +10,7 @@ export function useShopOwnedItems() {
   const { getCurrentUser } = useAuth();
 
   const fetchOwnedItems = useCallback(async () => {
-    const user = getCurrentUser(); // ✅ 여기서 한 번만 읽기
+    const user = getCurrentUser();
 
     if (!user) {
       setOwnedItemIds([]);
@@ -34,7 +34,7 @@ export function useShopOwnedItems() {
     } finally {
       setIsLoading(false);
     }
-  }, [getCurrentUser]); // ✅ 함수 참조만 의존
+  }, [getCurrentUser]);
 
   useEffect(() => {
     fetchOwnedItems();

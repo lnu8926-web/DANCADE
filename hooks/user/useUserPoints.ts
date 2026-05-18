@@ -17,7 +17,6 @@ export function useUserPoints() {
   const fetchPoints = useCallback(async () => {
     const user = getCurrentUser();
 
-    // 🔴 로그인 안 된 경우
     if (!user) {
       setPoints(0);
       return;
@@ -50,7 +49,6 @@ export function useUserPoints() {
     }
   }, [getCurrentUser]);
 
-  // 최초 1회 조회
   useEffect(() => {
     fetchPoints();
   }, [fetchPoints]);
