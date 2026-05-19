@@ -368,7 +368,6 @@ export default class LpcCharacter extends Phaser.GameObjects.Container {
     const lpcData = this.lpcSpriteManager.getLpcSprite();
 
     if (!lpcData) {
-      console.log("LpcSprite Error");
       return;
     }
     const gender = state.gender;

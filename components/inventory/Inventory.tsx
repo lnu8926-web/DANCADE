@@ -83,7 +83,6 @@ export default function Inventory() {
       if (adm && am) {
         setAvatarDataManager(adm);
         setAvatarManager(am);
-        console.log("✅ Avatar managers connected in Inventory");
         clearInterval(interval);
       }
     }, 300);
