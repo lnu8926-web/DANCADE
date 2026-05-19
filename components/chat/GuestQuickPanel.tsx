@@ -1,6 +1,3 @@
-// components/chat/GuestQuickPanel.tsx
-// 게스트 사용자용 빠른 메시지 패널 컴포넌트
-
 import styles from "./ChatFrame.module.css";
 
 interface GuestQuickPanelProps {
@@ -16,9 +13,6 @@ const QUICK_MESSAGES = [
   { emoji: "🎉", title: "축하" },
 ];
 
-/**
- * 게스트 사용자용 빠른 메시지 패널 컴포넌트
- */
 export function GuestQuickPanel({
   onQuickMessage,
   onRegisterClick,

@@ -8,7 +8,6 @@ export function useProducts(
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    //성별 null 방어코드 
     if (!gender) return;
     const fetchProducts = async () => {
       try {
@@ -34,7 +33,7 @@ export function useProducts(
     };
 
     fetchProducts();
-  }, [gender]); // ⭐ 조건 바뀌면 재요청
+  }, [gender]);
 
   return { products, isLoading };
 }

@@ -13,7 +13,6 @@ export default function ProductItem({ product, onSelectItem, onBuyItem }: Produc
       onClick={onSelectItem}
       className="relative cursor-pointer group"
     >
-      {/* 🔹 네온 프레임 (뒤) */}
       <div
         className="
           absolute inset-0
@@ -23,7 +22,6 @@ export default function ProductItem({ product, onSelectItem, onBuyItem }: Produc
         "
       />
 
-      {/* 🔹 실제 카드 */}
       <div
         className={`
           relative z-10
@@ -35,17 +33,15 @@ export default function ProductItem({ product, onSelectItem, onBuyItem }: Produc
           ${
             product.isOwned
               ? "bg-black"
-              : "group-hover:translate-x-[-2px] group-hover:translate-y-[-2px]"
+              : "group-hover:-translate-x-0.5 group-hover:-translate-y-0.5"
           }
         `}
       >
-        {/* 아이템명 */}
         <div className="text-white text-center text-sm tracking-wide pt-8">
           {product.name}
         </div>
 
-        {/* 가격 / 보유 */}
-        <div 
+        <div
           onClick={(e)=> {
             e.stopPropagation(); 
             if (product.isOwned) return;

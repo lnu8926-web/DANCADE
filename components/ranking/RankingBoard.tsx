@@ -1,4 +1,3 @@
-// components/RankingBoard.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -35,7 +34,6 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
   }, [page, gameType]);
 
   // 자동 넘김 (5초마다)
-  // 자동 넘김 (5초마다)
   useEffect(() => {
     const interval = setInterval(() => {
       setPage((prev) => {
@@ -47,7 +45,6 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
 
     return () => clearInterval(interval);
   }, [totalPages]);
-  // 순위별 메달 색상
   const getMedalColor = (rank: number) => {
     if (rank === 1) return "🥇";
     if (rank === 2) return "🥈";
@@ -78,7 +75,7 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
                 key={rank.id}
                 className={`flex justify-between items-center p-3 rounded-lg transition-all ${
                   rankNumber <= 3
-                    ? "bg-gradient-to-r from-yellow-600/30 to-yellow-500/10 border border-yellow-500/30"
+                    ? "bg-linear-to-r from-yellow-600/30 to-yellow-500/10 border border-yellow-500/30"
                     : "bg-gray-700/50 hover:bg-gray-700"
                 }`}
               >

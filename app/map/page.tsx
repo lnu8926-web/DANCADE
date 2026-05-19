@@ -7,7 +7,6 @@ const MapRenderer = dynamic(() => import("@/components/map/MapRenderer"), {
 
 export default function MapPage() {
   return(
-    // 화면 전체를 채우는 컨테이너. Phaser가 이 공간에 맞춰 맵 크기를 조절합니다.
     <div className="w-full h-screen bg-black">
       <div
         id="game-container"

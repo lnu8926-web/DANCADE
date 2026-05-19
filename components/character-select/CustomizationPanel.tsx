@@ -1,7 +1,11 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { Section } from "./Section";
 import { ButtonGroup, SelectButton } from "./Button";
-import type { CharacterState, LpcSprite, PartStyle } from "@/components/avatar/utils/LpcTypes";
+import type {
+  CharacterState,
+  LpcSprite,
+  PartStyle,
+} from "@/components/avatar/utils/LpcTypes";
 import { LpcSpriteManager } from "@/game/managers/global/LpcSpriteManager";
 
 interface CustomizationPanelProps {
@@ -11,58 +15,83 @@ interface CustomizationPanelProps {
   onGenderChange: (gender: "male" | "female") => void;
 }
 
+const filterBasic = <T extends { tier?: string }>(styles: T[]) =>
+  styles.filter((style) => style.tier === "basic");
+
+const renderColorSection = (
+  title: string,
+  colors: string[],
+  isActive: (color: string) => boolean,
+  onSelect: (color: string) => void,
+) => (
+  <Section title={title}>
+    <ButtonGroup>
+      {colors.map((color) => (
+        <SelectButton key={color} active={isActive(color)} onClick={() => onSelect(color)}>
+          {color}
+        </SelectButton>
+      ))}
+    </ButtonGroup>
+  </Section>
+);
+
+const renderStyleSection = (
+  title: string,
+  styles: PartStyle[],
+  isActive: (styleId: string) => boolean,
+  onSelect: (styleId: string) => void,
+) => (
+  <Section title={title}>
+    <ButtonGroup>
+      {styles.map((style) => (
+        <SelectButton key={style.id} active={isActive(style.id)} onClick={() => onSelect(style.id)}>
+          {style.name || style.id}
+        </SelectButton>
+      ))}
+    </ButtonGroup>
+  </Section>
+);
+
 export function CustomizationPanel({
   lpcData,
   customization,
   onChange,
   onGenderChange,
 }: CustomizationPanelProps) {
-  const lpcSpriteManager = new LpcSpriteManager();
+  const lpcSpriteManager = useMemo(() => new LpcSpriteManager(), []);
   const { palettes } = lpcData.definitions;
-  const { assets } = lpcData;
   const gender = customization.gender as "male" | "female";
 
-  // const availableHairStyles = lpcSpriteManager.getAssetsByPart(lpcData, 'hair', gender);
-  // const availableTorsoStyles = lpcSpriteManager.getAssetsByPart(lpcData, 'torso', gender);
-  // const availableLegsStyles = lpcSpriteManager.getAssetsByPart(lpcData, 'legs', gender);
-  
-  const filterBasic = <T extends { tier?: string }>(styles: T[]) =>
-  styles.filter((style) => style.tier === "basic");
+  const availableHairStyles = useMemo(
+    () => filterBasic(lpcSpriteManager.getAssetsByPart(lpcData, "hair", gender)),
+    [lpcSpriteManager, lpcData, gender],
+  );
 
-  const availableHairStyles = filterBasic(
-  lpcSpriteManager.getAssetsByPart(lpcData, "hair", gender)
-);
+  const availableTorsoStyles = useMemo(
+    () => filterBasic(lpcSpriteManager.getAssetsByPart(lpcData, "torso", gender)),
+    [lpcSpriteManager, lpcData, gender],
+  );
 
-const availableTorsoStyles = filterBasic(
-  lpcSpriteManager.getAssetsByPart(lpcData, "torso", gender)
-);
+  const availableLegsStyles = useMemo(
+    () => filterBasic(lpcSpriteManager.getAssetsByPart(lpcData, "legs", gender)),
+    [lpcSpriteManager, lpcData, gender],
+  );
 
-const availableLegsStyles = filterBasic(
-  lpcSpriteManager.getAssetsByPart(lpcData, "legs", gender)
-);
-
-
-
-  // 범용 핸들러 함수
   const handleChange = useCallback(
-    // T는 CharacterState['parts']의 키여야 함 (예: 'body', 'hair', 'torso')
     <T extends keyof CharacterState["parts"]>(
       part: T,
-      // value는 업데이트될 styleId 또는 color를 포함
-      value: { styleId?: string; color?: string }
+      value: { styleId?: string; color?: string },
     ) => {
       onChange((prev) => {
         if (!prev || !prev.parts) return prev;
 
-        // 1. 현재 파트 상태를 가져옴 (없으면 빈 객체 {})
         const prevPart = prev.parts[part] || {};
 
         const newPart = {
           ...prevPart,
-          ...value, // 새로운 styleId 또는 color를 덮어씀
+          ...value,
         };
 
-        // 2. 불변적으로 업데이트된 상태 반환
         return {
           ...prev,
           parts: {
@@ -72,171 +101,90 @@ const availableLegsStyles = filterBasic(
         } as CharacterState;
       });
     },
-    [onChange]
+    [onChange],
   );
 
   return (
     <div>
       <h2 className="text-2xl mb-[30px]">외모 커스터마이징</h2>
 
-      {/* 성별 선택 */}
       <Section title="성별">
         <ButtonGroup>
-          <SelectButton
-            active={customization.gender === "male"}
-            onClick={() => onGenderChange("male")}
-          >
+          <SelectButton active={customization.gender === "male"} onClick={() => onGenderChange("male")}>
             남성
           </SelectButton>
-          <SelectButton
-            active={customization.gender === "female"}
-            onClick={() => onGenderChange("female")}
-          >
+          <SelectButton active={customization.gender === "female"} onClick={() => onGenderChange("female")}>
             여성
           </SelectButton>
         </ButtonGroup>
       </Section>
 
-      {/* 피부색 선택 */}
-      <Section title="피부색">
-        <ButtonGroup>
-          {palettes.skin_common.slice(0, 10).map((color: string) => (
-            <SelectButton
-              key={color}
-              active={customization.parts.body?.color === color}
-              onClick={() => {
-                handleChange("body", { color })
-                handleChange("head", { color })
-                handleChange("nose", { color })
-              }}
-            >
-              {color}
-            </SelectButton>
-          ))}
-        </ButtonGroup>
-      </Section>
+      {renderColorSection(
+        "피부색",
+        palettes.skin_common.slice(0, 10),
+        (color) => customization.parts.body?.color === color,
+        (color) => {
+          handleChange("body", { color });
+          handleChange("head", { color });
+          handleChange("nose", { color });
+        },
+      )}
 
-      {/* 눈 색상 선택 */}
-      <Section title="눈 색상">
-        <ButtonGroup>
-          {palettes.eye_common.slice(0, 12).map((color: string) => (
-            <SelectButton
-              key={color}
-              active={customization.parts.eyes?.color === color}
-              onClick={() => handleChange("eyes", { color: color })}
-            >
-              {color}
-            </SelectButton>
-          ))}
-        </ButtonGroup>
-      </Section>
+      {renderColorSection(
+        "눈 색상",
+        palettes.eye_common.slice(0, 12),
+        (color) => customization.parts.eyes?.color === color,
+        (color) => handleChange("eyes", { color }),
+      )}
 
-      {/* 헤어 스타일 선택 */}
-      <Section title="헤어 스타일">
-        <ButtonGroup>
-          {availableHairStyles.map((style: PartStyle) => (
-            <SelectButton
-              key={style.id}
-              active={customization.parts.hair?.styleId === style.id}
-              onClick={() => handleChange("hair", { styleId: style.id })}
-            >
-              {style.name || style.id}
-            </SelectButton>
-          ))}
-        </ButtonGroup>
-      </Section>
+      {renderStyleSection(
+        "헤어 스타일",
+        availableHairStyles,
+        (styleId) => customization.parts.hair?.styleId === styleId,
+        (styleId) => handleChange("hair", { styleId }),
+      )}
 
-      {/* 헤어 색상 선택 */}
-      <Section title="헤어 색상">
-        <ButtonGroup>
-          {palettes.hair_common.slice(0, 12).map((color: string) => (
-            <SelectButton
-              key={color}
-              active={customization.parts.hair?.color === color}
-              onClick={() => handleChange("hair", { color: color })}
-            >
-              {color}
-            </SelectButton>
-          ))}
-        </ButtonGroup>
-      </Section>
+      {renderColorSection(
+        "헤어 색상",
+        palettes.hair_common.slice(0, 12),
+        (color) => customization.parts.hair?.color === color,
+        (color) => handleChange("hair", { color }),
+      )}
 
-      {/* 상의 스타일 선택 */}
-      <Section title="상의 스타일">
-        <ButtonGroup>
-          {availableTorsoStyles.map((style) => (
-            <SelectButton
-              key={style.id}
-              active={customization.parts.torso?.styleId === style.id}
-              onClick={() => handleChange("torso", { styleId: style.id })}
-            >
-              {style.name || style.id}
-            </SelectButton>
-          ))}
-        </ButtonGroup>
-      </Section>
+      {renderStyleSection(
+        "상의 스타일",
+        availableTorsoStyles,
+        (styleId) => customization.parts.torso?.styleId === styleId,
+        (styleId) => handleChange("torso", { styleId }),
+      )}
 
-      {/* 상의 색상 선택 (Parts: 'torso') */}
-      <Section title="상의 색상">
-        <ButtonGroup>
-          {palettes.clothes_common.slice(0, 12).map((color: string) => (
-            <SelectButton
-              key={color}
-              active={customization.parts.torso?.color === color}
-              onClick={() => handleChange("torso", { color: color })}
-            >
-              {color}
-            </SelectButton>
-          ))}
-        </ButtonGroup>
-      </Section>
+      {renderColorSection(
+        "상의 색상",
+        palettes.clothes_common.slice(0, 12),
+        (color) => customization.parts.torso?.color === color,
+        (color) => handleChange("torso", { color }),
+      )}
 
-      {/* 하의 스타일 선택 */}
-      <Section title="하의 스타일">
-        <ButtonGroup>
-          {availableLegsStyles.map((style) => (
-            <SelectButton
-              key={style.id}
-              // ⭐️ 'legs' 파트의 styleId 속성에 접근
-              active={customization.parts.legs?.styleId === style.id}
-              // ⭐️ 'legs' 파트를 대상으로 styleId를 업데이트
-              onClick={() => handleChange("legs", { styleId: style.id })}
-            >
-              {style.name || style.id}
-            </SelectButton>
-          ))}
-        </ButtonGroup>
-      </Section>
+      {renderStyleSection(
+        "하의 스타일",
+        availableLegsStyles,
+        (styleId) => customization.parts.legs?.styleId === styleId,
+        (styleId) => handleChange("legs", { styleId }),
+      )}
 
-      {/* 하의 색상 선택 */}
-      <Section title="하의 색상">
-        <ButtonGroup>
-          {palettes.clothes_common.slice(0, 12).map((color: string) => (
-            <SelectButton
-              key={color}
-              active={customization.parts.legs?.color === color}
-              onClick={() => handleChange("legs", { color: color })}
-            >
-              {color}
-            </SelectButton>
-          ))}
-        </ButtonGroup>
-      </Section>
+      {renderColorSection(
+        "하의 색상",
+        palettes.clothes_common.slice(0, 12),
+        (color) => customization.parts.legs?.color === color,
+        (color) => handleChange("legs", { color }),
+      )}
 
-       {/* 하의 색상 선택 */}
-      <Section title="신발 색상">
-        <ButtonGroup>
-          {palettes.clothes_common.slice(0, 12).map((color: string) => (
-            <SelectButton
-              key={color}
-              active={customization.parts.feet?.color === color}
-              onClick={() => handleChange("feet", { color: color })}
-            >
-              {color}
-            </SelectButton>
-          ))}
-        </ButtonGroup>
-      </Section>
+      {renderColorSection(
+        "신발 색상",
+        palettes.clothes_common.slice(0, 12),
+        (color) => customization.parts.feet?.color === color,
+        (color) => handleChange("feet", { color }),
+      )}
     </div>
   );
 }

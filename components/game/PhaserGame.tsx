@@ -1,4 +1,3 @@
-// components/game/PhaserGame.tsx
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -53,7 +52,6 @@ export default function PhaserGame() {
     };
   }, []);
 
-  // Listen for Phaser preload completion (dispatched from PreloadScene)
   useEffect(() => {
     const onPreloadComplete = () => setLoading(false);
     window.addEventListener(

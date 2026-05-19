@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+
 import Inventory from "@/components/inventory/Inventory";
 import ChatFrame from "@/components/chat/ChatFrame";
+import { useGuestAuth } from "@/hooks/useGuestAuth";
 
 const PhaserGame = dynamic(() => import("@/components/game/PhaserGame"), {
   ssr: false,
@@ -11,32 +13,20 @@ const PhaserGame = dynamic(() => import("@/components/game/PhaserGame"), {
 
 export default function GamePage() {
   const [nickname, setNickname] = useState<string | null>(null);
+  const { getStoredUser } = useGuestAuth();
 
   useEffect(() => {
-    // 클라이언트 사이드에서만 localStorage 접근
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      try {
-        const { nickname } = JSON.parse(userData);
-        setNickname(nickname || "");
-      } catch (error) {
-        console.error("사용자 데이터 파싱 오류:", error);
-        setNickname("");
-      }
-    } else {
-      setNickname("");
-    }
+    const user = getStoredUser();
+    setNickname(user?.nickname ?? "");
 
-    // 게임 페이지에서 스크롤 비활성화
     document.body.style.overflow = "hidden";
     document.documentElement.style.overflow = "hidden";
 
     return () => {
-      // 페이지 이동 시 스크롤 복구
       document.body.style.overflow = "auto";
       document.documentElement.style.overflow = "auto";
     };
-  }, []);
+  }, [getStoredUser]);
 
   return (
     <div className="min-h-screen overflow-hidden">

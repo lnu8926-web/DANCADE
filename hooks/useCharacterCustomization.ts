@@ -1,12 +1,10 @@
-// import { createInitialCustomization } from "@/utils/character-helpers";
-// import { generateRandomCustomization } from "@/utils/character-helpers";
-// import { getHairStylesByGender } from "@/utils/character-helpers";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
+
 import type { CharacterState, LpcSprite } from "@/components/avatar/utils/LpcTypes";
 import { LpcSpriteManager } from "@/game/managers/global/LpcSpriteManager";
 
 export function useCharacterCustomization(lpcData: LpcSprite | null) {
-  const lpcSpriteManager = new LpcSpriteManager();
+  const lpcSpriteManager = useMemo(() => new LpcSpriteManager(), []);
   const [customization, setCustomization] = useState<CharacterState | null>(
     null
   );
@@ -17,41 +15,30 @@ export function useCharacterCustomization(lpcData: LpcSprite | null) {
 
     try {
       const safeInitial = lpcSpriteManager.getInitialPart(lpcData);
-      // const safeInitial = createInitialCustomization(lpcData);
       setCustomization(safeInitial);
       setIsInitialized(true);
     } catch (error) {
       console.error("기본 아바타값 생성 실패:", error);
       setIsInitialized(true);
     }
-  }, [lpcData]);
+  }, [lpcData, lpcSpriteManager]);
 
-  // 랜덤 생성 핸들러
   const handleRandomize = useCallback(() => {
     if (!lpcData || !customization) return;
 
     try {
       const randomCustomization = lpcSpriteManager.getRandomPart(lpcData);
-      // const randomCustomization = generateRandomCustomization(
-      //   lpcData,
-      //   customization.gender as "male" | "female"
-      // );
       setCustomization(randomCustomization);
     } catch (error) {
       console.error("랜덤 생성에 실패했습니다:", error);
     }
-  }, [lpcData, customization]);
+  }, [lpcData, customization, lpcSpriteManager]);
 
-  // 성별 변경 핸들러
   const handleGenderChange = useCallback(
     (gender: "male" | "female") => {
       if (!lpcData || !customization) return;
 
       const hairStyles = lpcSpriteManager.getAssetsByPart(lpcData, "hair", gender);
-      // const hairStyles = getHairStylesByGender(
-      //   lpcData.assets.hair.styles,
-      //   gender
-      // );
 
       if (hairStyles.length === 0) {
         console.warn("성별에 맞는 헤어스타일이 없습니다:", gender);
@@ -71,18 +58,16 @@ export function useCharacterCustomization(lpcData: LpcSprite | null) {
           ...prev,
           gender: gender,
           parts: {
-            // parts 객체에 접근
-            ...prev.parts, // 다른 파츠는 유지
+            ...prev.parts,
             hair: {
-              // hair 파트 업데이트
-              styleId: firstHair.id, // style 대신 styleId 사용
-              color: currentHair.color || defaultColor, // prev.parts.hair.color로 접근
+              styleId: firstHair.id,
+              color: currentHair.color || defaultColor,
             },
           },
         } as CharacterState;
       });
     },
-    [lpcData, customization]
+    [lpcData, customization, lpcSpriteManager]
   );
 
   return {

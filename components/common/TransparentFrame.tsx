@@ -13,7 +13,6 @@ export default function TransparentFrame({
     <section className="relative h-screen px-5 py-8 font-neo">
       <div className="absolute inset-0 bg-[url('/assets/background/common.png')] bg-cover bg-center bg-no-repeat opacity-15 -z-10" />
 
-      {/* 중앙 투명 프레임 */}
       <div
         className={` relative
           

@@ -59,7 +59,6 @@ export default function ShopCharacterPreview({ character }: Props) {
         ref={wrapperRef}
         className="relative isolate flex items-center justify-center"
       >
-        {/* glow (뒤 레이어) */}
         <div
           ref={glowRef}
           className="
@@ -67,7 +66,7 @@ export default function ShopCharacterPreview({ character }: Props) {
             z-0
             left-1/2
             -translate-x-1/2
-            bottom-[-6px]
+            -bottom-1.5
             w-28 h-4
             rounded-full
             bg-cyan-400
@@ -77,7 +76,6 @@ export default function ShopCharacterPreview({ character }: Props) {
           "
         />
 
-        {/* 캐릭터 (앞 레이어) */}
         <div className="relative z-10">
           <AvatarPreview customization={character} />
         </div>

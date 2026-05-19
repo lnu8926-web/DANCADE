@@ -1,6 +1,3 @@
-// components/auth/GuestDataSection.tsx
-// 게스트 데이터 불러오기 섹션 컴포넌트
-
 interface GuestDataSectionProps {
   hasGuestData: boolean;
   guestDataSelected: boolean;
@@ -11,11 +8,6 @@ interface GuestDataSectionProps {
   onReselect: () => void;
 }
 
-/**
- * 게스트 데이터 불러오기 UI
- * - 불러오기/아니요 선택
- * - 선택 완료 후 확인 메시지
- */
 export function GuestDataSection({
   hasGuestData,
   guestDataSelected,
@@ -27,20 +19,19 @@ export function GuestDataSection({
 }: GuestDataSectionProps) {
   if (!hasGuestData) return null;
 
-  // 아직 선택하지 않은 상태
   if (!guestDataSelected) {
     return (
-      <div className="bg-[var(--color-pink)]/10 border-2 border-[var(--color-pink)]/60 rounded-lg px-5 py-4 mb-6">
+      <div className="bg-(--color-pink)/10er-2 border-(--color-pink)/60ded-lg px-5 py-4 mb-6">
         <div className="flex flex-col gap-3">
           <div>
-            <p className="text-sm text-[var(--color-pink)] font-bold mb-2">
+            <p className="text-sm text-(--color-pink)-bold mb-2">
               ✨ 게스트 데이터 불러오기
             </p>
             {guestPoints > 0 && (
-              <p className="text-sm text-[var(--color-navy)]">
+              <p className="text-sm text-(--color-navy)">
                 <span className="font-bold">{guestNickname}</span>
-                <span className="mx-2 text-[var(--color-pink)]">•</span>
-                <span className="font-bold text-[var(--color-pink)]">
+                <span className="mx-2 text-(--color-pink)">•</span>
+                <span className="font-bold text-(--color-pink)">
                   {guestPoints}P
                 </span>
               </p>
@@ -65,7 +56,6 @@ export function GuestDataSection({
     );
   }
 
-  // 선택 완료 상태
   return (
     <div className="bg-green-100 border-2 border-green-500 rounded-lg px-5 py-4 mb-6">
       <div className="flex flex-col gap-3 items-center">
@@ -87,7 +77,6 @@ export function GuestDataSection({
   );
 }
 
-// 내부 버튼 컴포넌트
 function GuestDataButton({
   selected,
   onClick,
@@ -103,8 +92,8 @@ function GuestDataButton({
       onClick={onClick}
       className={`flex-1 px-4 py-2 font-bold rounded-lg text-sm transition-all duration-200 ${
         selected
-          ? "bg-[var(--color-pink)] text-white shadow-lg hover:shadow-xl hover:translate-y-[-2px]"
-          : "bg-[var(--color-pink)]/20 text-[var(--color-pink)] hover:bg-[var(--color-pink)]/30"
+          ? "bg-(--color-pink) text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+          : "bg-(--color-pink)/20 text-(--color-pink) hover:bg-(--color-pink)/30"
       }`}
     >
       {children}

@@ -1,93 +1,92 @@
 "use client";
-import TransparentFrame from "@/components/common/TransparentFrame";
-import CategoryTabs, { ShopCategory } from "@/components/shop/CategoryTabs";
-import ProductList from "@/components/shop/ProductList";
-import { useProducts } from "@/hooks/shop/useProducts";
+
+import { useEffect, useState } from "react";
+
+import type { CharacterState } from "@/components/avatar/utils/LpcTypes";
+import { ITEMS_PER_PAGE } from "@/constants/shopPageNation";
 import { Product } from "@/game/types/product";
-import ProductDetailModal from "@/components/shop/ProductDetailModal";
+
+import { useAuth } from "@/hooks/auth/useAuth";
+import { useCharacterStorage } from "@/hooks/useCharacterStorage";
+import { useProducts } from "@/hooks/shop/useProducts";
 import { useShopOwnedItems } from "@/hooks/shop/useShopOwnedItems";
 import { usePurchase } from "@/hooks/shop/usePurchase";
+
+import TransparentFrame from "@/components/common/TransparentFrame";
 import { UserPointBar } from "@/components/common/UserPointBar";
-import { useAuth } from "@/hooks/auth/useAuth";
-import { STORAGE_KEY } from "@/constants/character";
-import type { CharacterState } from "@/components/avatar/utils/LpcTypes";
-import { useEffect, useState } from "react";
-import ShopCharacterPreview from "@/components/shop/ShopCharacterPreview";
-import { ITEMS_PER_PAGE } from "@/constants/shopPageNation";
 import { useToast } from "@/components/common/ToastProvider";
+import CategoryTabs, { ShopCategory } from "@/components/shop/CategoryTabs";
+import ProductDetailModal from "@/components/shop/ProductDetailModal";
+import ProductList from "@/components/shop/ProductList";
+import ShopCharacterPreview from "@/components/shop/ShopCharacterPreview";
 import Header from "@/components/shop/ShopHeader";
 
+const SHOP_CATEGORY_TO_LPC_PART: Record<
+  ShopCategory,
+  keyof CharacterState["parts"] | null
+> = {
+  all: null,
+  hair: "hair",
+  top: "torso",
+  bottom: "legs",
+  feet: "feet",
+};
+
 export default function ShopPage() {
+  // state
   const [previewCharacter, setPreviewCharacter] =
     useState<CharacterState | null>(null);
-  const gender = previewCharacter?.gender as "male" | "female" | undefined;
   const [activeCategory, setActiveCategory] = useState<ShopCategory>("all");
-  const { showToast } = useToast();
-
-  const { products, isLoading } = useProducts(gender);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const {
-    ownedItemIds,
-    isLoading: ownedLoading,
-    refetch,
-  } = useShopOwnedItems();
-  const { purchase, isLoading: isPurchasing } = usePurchase();
-  const { getCurrentUser } = useAuth();
-  const user = getCurrentUser();
-
   const [currentPage, setCurrentPage] = useState(1);
+
+  // hooks
+  const { showToast } = useToast();
+  const { getCurrentUser } = useAuth();
+  const { loadCharacterLocal } = useCharacterStorage();
+  const gender = previewCharacter?.gender as "male" | "female" | undefined;
+  const { products, isLoading } = useProducts(gender);
+  const { ownedItemIds, isLoading: ownedLoading, refetch } = useShopOwnedItems();
+  const { purchase, isLoading: isPurchasing } = usePurchase();
+
+  // effects
   useEffect(() => {
     setCurrentPage(1);
   }, [activeCategory]);
 
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-
-  const SHOP_CATEGORY_TO_LPC_PART: Record<
-    ShopCategory,
-    keyof CharacterState["parts"] | null
-  > = {
-    all: null,
-    hair: "hair",
-    top: "torso",
-    bottom: "legs",
-    feet: "feet",
-  };
-
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = loadCharacterLocal();
     if (!stored) return;
-
-    setPreviewCharacter(JSON.parse(stored));
-  }, []);
+    setPreviewCharacter(stored);
+  }, [loadCharacterLocal]);
 
   if (isLoading || ownedLoading) return <div>로딩중...</div>;
 
+  // 파생값
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
   const productsWithOwnership = products.map((product) => ({
     ...product,
     isOwned: ownedItemIds.includes(product.id),
   }));
+  const filteredProducts =
+    activeCategory === "all"
+      ? productsWithOwnership
+      : productsWithOwnership.filter(
+          (product) => product.category === activeCategory
+        );
+  const pagedProducts = filteredProducts.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
 
+  // 핸들러
   const requireUser = () => {
     const user = getCurrentUser();
     if (!user) {
-      showToast({
-        type: "info",
-        message: "회원 가입 후 진행해주세요.",
-      });
+      showToast({ type: "info", message: "회원 가입 후 진행해주세요." });
       return null;
     }
     return user;
-  };
-
-  const handleSelectProduct = (product: Product) => {
-    // const user = requireUser();
-    // if (!user) return;
-
-    handlePreviewItem(product);
-    // setSelectedProduct(product);
-    // setIsModalOpen(true);
   };
 
   const handleBuyProduct = (product: Product) => {
@@ -103,33 +102,18 @@ export default function ShopPage() {
     setSelectedProduct(null);
   };
 
-  const filteredProducts =
-    activeCategory === "all"
-      ? productsWithOwnership
-      : productsWithOwnership.filter(
-          (product) => product.category === activeCategory
-        );
-
-  const pagedProducts = filteredProducts.slice(startIndex, endIndex);
-  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
-
   const handlePurchase = async (product: Product) => {
     if (isPurchasing) return;
 
-    const result = await purchase(user!.id, product.id);
+    const user = requireUser();
+    if (!user) return;
+
+    const result = await purchase(user.id, product.id);
 
     if (!result) {
-      // ❌ 포인트 부족, 이미 보유 등
-      showToast({
-        type: "info",
-        message: "구매에 실패했습니다 포인트부족",
-      });
+      showToast({ type: "info", message: "구매에 실패했습니다 포인트부족" });
     } else {
-      // ⭕ 구매 성공
-      showToast({
-        type: "success",
-        message: "구매가 완료되었습니다!",
-      });
+      showToast({ type: "success", message: "구매가 완료되었습니다!" });
       await refetch();
     }
 
@@ -153,8 +137,7 @@ export default function ShopPage() {
           ...prev.parts,
           [partKey]: {
             ...prev.parts[partKey],
-            styleId: product.style_key, // ✅ style만 교체
-            // ❗ color / palette 그대로 유지
+            styleId: product.style_key,
           },
         },
       };
@@ -177,7 +160,7 @@ export default function ShopPage() {
               )}
             </aside>
 
-            <aside className="side-content w-[160px] h-full flex">
+            <aside className="side-content w-40 h-full flex">
               <CategoryTabs
                 activeCategory={activeCategory}
                 onChange={setActiveCategory}
@@ -189,7 +172,7 @@ export default function ShopPage() {
           <section className="shop-content flex-1 relative min-h-[720px]">
             <ProductList
               products={pagedProducts}
-              onSelect={handleSelectProduct}
+              onSelect={handlePreviewItem}
               onBuy={handleBuyProduct}
             />
 

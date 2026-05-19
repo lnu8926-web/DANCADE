@@ -1,6 +1,3 @@
-// components/chat/ChatInput.tsx
-// 채팅 입력 영역 컴포넌트
-
 import { useState, useRef, useEffect } from "react";
 import styles from "./ChatFrame.module.css";
 
@@ -11,15 +8,11 @@ interface ChatInputProps {
 
 const EMOJI_OPTIONS = ["😀", "😂", "😍", "🥰", "😎", "🤔", "😅", "😇"];
 
-/**
- * 채팅 입력 영역 컴포넌트
- */
 export function ChatInput({ onSend, isAnalyzing }: ChatInputProps) {
   const [inputValue, setInputValue] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
 
-  // 외부 클릭 시 이모지 피커 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -46,7 +39,7 @@ export function ChatInput({ onSend, isAnalyzing }: ChatInputProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    e.stopPropagation(); // 게임 키 입력 방지
+    e.stopPropagation();
     if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
       handleSend();
@@ -76,7 +69,6 @@ export function ChatInput({ onSend, isAnalyzing }: ChatInputProps) {
 
   return (
     <div className={styles.inputContainer}>
-      {/* 이모지 피커 */}
       <div className={styles.emojiPickerContainer} ref={emojiPickerRef}>
         <button
           className={styles.emojiPickerBtn}
@@ -100,7 +92,6 @@ export function ChatInput({ onSend, isAnalyzing }: ChatInputProps) {
         )}
       </div>
 
-      {/* 입력 필드 */}
       <div className={styles.inputWrapper}>
         <input
           type="text"

@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useUserPoints } from "@/hooks/user/useUserPoints";
 
-const ITEM_HEIGHT = 24; // 숫자 한 줄 높이(px)
-const STEP = 50;        // 숫자 변화 단위 (10 / 50 / 100 취향)
+const ITEM_HEIGHT = 24;
+const STEP = 50;
 
 export function UserPointBar() {
   const { points } = useUserPoints();
@@ -20,7 +20,6 @@ export function UserPointBar() {
 
     if (prev === next) return;
 
-    // 방향 결정
     const direction = prev > next ? -1 : 1;
     const step = STEP * direction;
 
@@ -41,12 +40,10 @@ export function UserPointBar() {
     setOffsetY(0);
     setIsAnimating(true);
 
-    // 다음 프레임에서 이동 시작
     requestAnimationFrame(() => {
       setOffsetY(-(list.length - 1) * ITEM_HEIGHT);
     });
 
-    // 애니메이션 종료 처리
     const timer = setTimeout(() => {
       setNumbers([next]);
       setOffsetY(0);

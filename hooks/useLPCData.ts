@@ -1,4 +1,3 @@
-// LPC 데이터 로딩 훅
 import { LpcSprite } from "@/components/avatar/utils/LpcTypes";
 import { LPC_ASSETS_PATH } from "@/constants/character";
 import { useEffect, useState } from "react";

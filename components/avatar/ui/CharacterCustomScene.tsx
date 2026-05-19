@@ -18,7 +18,6 @@ export default class CharacterCustomScene extends Phaser.Scene {
   }
 
   create() {
-    // 1. 캐릭터 생성
     this.character = new LpcCharacter(
       this,
       200,
@@ -27,22 +26,18 @@ export default class CharacterCustomScene extends Phaser.Scene {
       this.lpcSpriteManager
     );
 
-    // 2. LPC 데이터 로드 (PreloadScene에서 이미 로드됨, 파싱만 수행)
     this.lpcData = this.lpcSpriteManager.getLpcSprite();
 
     this.cameras.main.setZoom(2.5);
     this.cameras.main.centerOn(200, 200);
 
-    // 3. Registry에 이미 값이 있다면 적용
     const currentData = this.registry.get("customization");
     if (currentData) {
       this.updatePlayerVisuals(currentData);
     } else if (this.lpcData) {
-      // 데이터가 없으면 랜덤
       this.updatePlayerVisuals(LpcUtils.getRandomState(this.lpcData));
     }
 
-    // 4. React에서 registry 값을 바꿀 때마다 실행됨
     this.registry.events.on(
       "changedata-customization",
       (parent: any, newValue: CharacterState) => {
@@ -72,7 +67,6 @@ export default class CharacterCustomScene extends Phaser.Scene {
             gender,
             partState.color
           );
-          // Fallback: 성별 없는 옷
           if (!this.textures.exists(assetKey)) {
             assetKey = LpcUtils.getAssetKey(
               partName,

@@ -1,4 +1,3 @@
-// components/shop/CategoryTabs.tsx
 "use client";
 export const SHOP_CATEGORIES = [
   { key: "all", label: "전체"  },
@@ -21,10 +20,8 @@ export default function CategoryTabs({
 }: CategoryTabsProps) {
   return (
     <nav className="relative h-full ">
-      {/* ✅ 화면 전체를 채우는 기둥바 */}
-      <div className="absolute left-0 top-0 h-full w-[2px] bg-white/80 rounded-sm" />
+      <div className="absolute left-0 top-0 h-full w-0.5 bg-white/80 rounded-sm" />
 
-      {/* ✅ 세로 중앙에 오는 카테고리 텍스트 */}
       <div className="h-full flex items-center ">
         <ul className="flex flex-col gap-15 py-2">
           {SHOP_CATEGORIES.map((cat) => {

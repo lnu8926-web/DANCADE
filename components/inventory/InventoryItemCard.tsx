@@ -9,7 +9,6 @@ type InventoryProps = {
 
 export default function InventoryItemCard({
   name,
-  imageUrl,
   isEquipped,
   onDoubleClick,
 }: InventoryProps) {
@@ -35,7 +34,7 @@ export default function InventoryItemCard({
         }
       `}
     >
-      <p className="w-full text-center text-sm leading-none text-sm">{name}</p>
+      <p className="w-full text-center text-sm leading-none">{name}</p>
     </div>
   );
 }

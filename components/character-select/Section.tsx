@@ -1,6 +1,3 @@
-/**
- * 섹션 컴포넌트 - 각 커스터마이징 옵션을 감싸는 컨테이너
- */
 export function Section({
   title,
   children,
