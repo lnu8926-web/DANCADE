@@ -5,11 +5,10 @@ import { useRouter } from "next/navigation";
 
 import { useCallback, useState, useEffect } from "react";
 
-import { STORAGE_KEY } from "@/constants/character";
-
 import { useAuth } from "@/hooks/auth/useAuth";
 import { useCharacterSave } from "@/hooks/character/useCharacterSave";
 import { useCharacterCustomization } from "@/hooks/useCharacterCustomization";
+import { useCharacterStorage } from "@/hooks/useCharacterStorage";
 import { useGuestAuth } from "@/hooks/useGuestAuth";
 import { useLPCData } from "@/hooks/useLPCData";
 
@@ -33,6 +32,7 @@ export default function CharacterSelect() {
   const { getCurrentUser } = useAuth();
   const { getStoredUser, getOrCreateGuestUser } = useGuestAuth();
   const { saveCharacter } = useCharacterSave();
+  const { saveCharacterLocal } = useCharacterStorage();
 
   const { lpcData, isLoading, error } = useLPCData();
   const {
@@ -57,7 +57,7 @@ export default function CharacterSelect() {
   const handleStartGame = useCallback(async () => {
     if (!customization) return;
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(customization));
+    saveCharacterLocal(customization);
 
     const memberUser = getCurrentUser();
 
@@ -94,6 +94,7 @@ export default function CharacterSelect() {
     getCurrentUser,
     router,
     saveCharacter,
+    saveCharacterLocal,
     getOrCreateGuestUser,
   ]);
 

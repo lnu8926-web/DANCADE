@@ -13,6 +13,7 @@ import {
   LocalUser,
   isMemberUser,
 } from "@/types/user";
+import { STORAGE_KEYS } from "@/constants/auth";
 
 export const useAuth = () => {
   const router = useRouter();
@@ -22,7 +23,7 @@ export const useAuth = () => {
     if (typeof window === "undefined") return null;
 
     try {
-      const userData = localStorage.getItem("user");
+      const userData = localStorage.getItem(STORAGE_KEYS.USER);
       if (!userData) return null;
 
       const parsed: LocalUser = JSON.parse(userData);
@@ -168,7 +169,7 @@ export const useAuth = () => {
       };
 
       if (typeof window !== "undefined") {
-        localStorage.setItem("user", JSON.stringify(memberData));
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(memberData));
       }
 
       return memberData;
@@ -182,7 +183,7 @@ export const useAuth = () => {
 
   const logout = useCallback(() => {
     if (typeof window !== "undefined") {
-      localStorage.removeItem("user");
+      localStorage.removeItem(STORAGE_KEYS.USER);
     }
     router.push("/");
   }, [router]);

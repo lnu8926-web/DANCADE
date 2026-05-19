@@ -10,8 +10,8 @@ import Window from "@/components/common/Window";
 import { useAuth } from "@/hooks/auth/useAuth";
 import { useGuestAuth } from "@/hooks/useGuestAuth";
 import { useLogin } from "@/hooks/auth/useLogin";
+import { useCharacterStorage } from "@/hooks/useCharacterStorage";
 import { getCurrentUser } from "@/lib/utils/auth";
-import { STORAGE_KEY } from "@/constants/character";
 
 const gameList = [
   { src: brickBreaker, alt: "벽돌깨기 게임" },
@@ -25,6 +25,7 @@ export default function LoginIdPage() {
   const { login, isLoading: isAuthLoading } = useAuth();
   const { getOrCreateGuestUser } = useGuestAuth();
   const { readCharacter } = useLogin();
+  const { saveCharacterLocal } = useCharacterStorage();
 
   const [formData, setFormData] = useState({
     username: "",
@@ -62,7 +63,7 @@ export default function LoginIdPage() {
       const characterSkin = result?.characterSkin;
 
       if (characterSkin) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(characterSkin));
+        saveCharacterLocal(characterSkin);
         router.push("/game");
       } else {
         router.push("/character-select");

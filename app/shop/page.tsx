@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 
 import type { CharacterState } from "@/components/avatar/utils/LpcTypes";
-import { STORAGE_KEY } from "@/constants/character";
 import { ITEMS_PER_PAGE } from "@/constants/shopPageNation";
 import { Product } from "@/game/types/product";
 
 import { useAuth } from "@/hooks/auth/useAuth";
+import { useCharacterStorage } from "@/hooks/useCharacterStorage";
 import { useProducts } from "@/hooks/shop/useProducts";
 import { useShopOwnedItems } from "@/hooks/shop/useShopOwnedItems";
 import { usePurchase } from "@/hooks/shop/usePurchase";
@@ -44,6 +44,7 @@ export default function ShopPage() {
   // hooks
   const { showToast } = useToast();
   const { getCurrentUser } = useAuth();
+  const { loadCharacterLocal } = useCharacterStorage();
   const gender = previewCharacter?.gender as "male" | "female" | undefined;
   const { products, isLoading } = useProducts(gender);
   const { ownedItemIds, isLoading: ownedLoading, refetch } = useShopOwnedItems();
@@ -55,10 +56,10 @@ export default function ShopPage() {
   }, [activeCategory]);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = loadCharacterLocal();
     if (!stored) return;
-    setPreviewCharacter(JSON.parse(stored));
-  }, []);
+    setPreviewCharacter(stored);
+  }, [loadCharacterLocal]);
 
   if (isLoading || ownedLoading) return <div>로딩중...</div>;
 
