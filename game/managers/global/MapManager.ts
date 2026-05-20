@@ -14,7 +14,6 @@ const TILE_IMAGES: Array<[string, string]> = [
   ["mainDesk", "/tilesets/mainDesk.png"],
   ["RedChair", "/tilesets/RedChair.png"],
   ["storefrontSign", "/tilesets/storefrontSign.png"],
-  ["userButton", "/tilesets/userButton.png"],
 ];
 const MAIN_MAP = "/maps/DanArcadeLast9.tmj";
 

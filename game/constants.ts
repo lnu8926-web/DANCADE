@@ -19,7 +19,6 @@ export const ASSET_PATHS = {
     MAIN_DESK: "/tilesets/mainDesk.png",
     RED_CHAIR: "/tilesets/RedChair.png",
     STOREFRONT_SIGN: "/tilesets/storefrontSign.png",
-    USER_BUTTON: "/tilesets/userButton.png",
     BG1_1: "/tilesets/bg1_1.png",
   },
   MAPS: {

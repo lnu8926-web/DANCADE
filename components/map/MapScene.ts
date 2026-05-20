@@ -20,7 +20,6 @@ export default class MapScene extends Phaser.Scene {
     this.load.image("mainDesk", "/tilesets/mainDesk.png");
     this.load.image("RedChair", "/tilesets/RedChair.png");
     this.load.image("storefrontSign", "/tilesets/storefrontSign.png");
-    this.load.image("userButton", "/tilesets/userButton.png");
     this.load.tilemapTiledJSON("map", "/maps/DanArcadeLast8.tmj");
     this.load.image("bg1_1", "/tilesets/bg1_1.png");
   }
@@ -47,7 +46,6 @@ export default class MapScene extends Phaser.Scene {
       "storefrontSign"
     );
     const electronic = map.addTilesetImage("electronic", "electronic");
-    const userButton = map.addTilesetImage("userButton", "userButton");
 
     const tilesetsRaw = [
       common,
@@ -63,7 +61,6 @@ export default class MapScene extends Phaser.Scene {
       button2,
       storefrontSign,
       electronic,
-      userButton,
     ];
 
     const tilesets = tilesetsRaw.filter(
