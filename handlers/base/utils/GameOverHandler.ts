@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getServerApiBaseUrl } from "./ServerRuntime";
 
 import type { UserStats } from "../../../types/user";
 import {
@@ -10,7 +11,7 @@ import {
 import { ServerRoom } from "../../../game/types/multiplayer/room.types";
 
 // 환경변수로 Next.js API URL 설정
-const NEXT_API_URL = process.env.NEXT_API_URL || "http://localhost:3000";
+const NEXT_API_URL = getServerApiBaseUrl();
 
 // =====================================================================
 /**

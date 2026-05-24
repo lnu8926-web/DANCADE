@@ -1,15 +1,25 @@
 // lib/socket.ts
 import { io } from "socket.io-client";
+import { getClientSocketUrl } from "@/lib/config/runtime";
 
 // Socket.io 클라이언트 인스턴스 생성
-const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
+const socketUrl = getClientSocketUrl();
 export const socket = io(socketUrl, {
   autoConnect: false, // ✅ 기본은 연결 안 함 (멀티플레이 게임에서만 수동 연결)
   reconnection: true,
   reconnectionDelay: 1000,
-  reconnectionAttempts: 5,
+  reconnectionDelayMax: 10000,
+  reconnectionAttempts: 10,
   withCredentials: true,
-  transports: ["websocket"],
+  transports: ["websocket", "polling"],
+});
+
+socket.on("reconnect_failed", () => {
+  console.error("🔴 Socket 재연결 시도 횟수 초과 - 페이지 새로고침이 필요합니다.");
+});
+
+socket.on("reconnect", (attempt: number) => {
+  console.log(`✅ Socket 재연결 성공 (${attempt}번째 시도)`);
 });
 
 // 연결 상태 로깅 (개발 시 유용)

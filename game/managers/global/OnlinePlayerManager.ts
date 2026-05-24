@@ -4,6 +4,7 @@ import io from "socket.io-client";
 import LpcCharacter from "@/components/avatar/core/LpcCharacter";
 import { LpcSpriteManager } from "@/game/managers/global/LpcSpriteManager";
 import { UIManager } from "@/game/managers/global/UIManager";
+import { getClientSocketUrl } from "@/lib/config/runtime";
 import {
   AnimationData,
   JoinGameData,
@@ -53,8 +54,7 @@ export class OnlinePlayerManager {
   }
 
   private setupSocket(): void {
-    const socketUrl =
-      process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
+    const socketUrl = getClientSocketUrl();
 
     this.socket = io(socketUrl, {
       reconnection: true,

@@ -1,3 +1,5 @@
+import { getServerApiBaseUrl } from "@/lib/config/runtime";
+
 export type EventGameType = 'rock_paper_scissors' | 'consonant_quiz'; 
 
 interface EventGameProps {
@@ -17,7 +19,7 @@ interface ResultProps {
   }
 }
 
-const NEXT_API_URL = process.env.NEXT_API_URL || "http://localhost:3000";
+const NEXT_API_URL = getServerApiBaseUrl();
 const EVENT_GAME_BASE_URL = `${NEXT_API_URL}/api/event/game`
 
 // Project Info API

@@ -5,9 +5,10 @@ import {
   StatsApiResponse,
 } from "../../../types/server/server.types";
 import axios from "axios";
+import { getServerApiBaseUrl } from "./ServerRuntime";
 
 // 환경변수로 Next.js API URL 설정
-const NEXT_API_URL = process.env.NEXT_API_URL || "http://localhost:3000";
+const NEXT_API_URL = getServerApiBaseUrl();
 
 /**
  * RoomStatsEnricher

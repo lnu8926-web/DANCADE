@@ -2,6 +2,7 @@
 import io, { Socket } from "socket.io-client";
 import LpcCharacter from "@/components/avatar/core/LpcCharacter";
 import { LpcSpriteManager } from "@/game/managers/global/LpcSpriteManager";
+import { getClientSocketUrl } from "@/lib/config/runtime";
 import type { CharacterState } from "@/components/avatar/utils/LpcTypes";
 
 // 플레이어 데이터 타입
@@ -70,8 +71,7 @@ export class LobbyNetworkManager {
 
   // Socket.io 연결 및 이벤트 설정
   connect(): void {
-    const socketUrl =
-      process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
+    const socketUrl = getClientSocketUrl();
     this.socket = io(socketUrl, {
       reconnection: true,
       reconnectionDelay: 1000,

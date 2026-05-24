@@ -1,8 +1,9 @@
 import axios from "axios";
+import { getServerApiBaseUrl } from "./utils/ServerRuntime";
 
 import type { GameConfig } from "@/types/game";
 
-const NEXT_API_URL = process.env.NEXT_API_URL || "http://localhost:3000";
+const NEXT_API_URL = getServerApiBaseUrl();
 
 import {
   generateRoomId,

@@ -55,9 +55,21 @@ export abstract class BaseNetworkManager {
       console.log("[NexworkManager] 소켓 연결 해제:", reason);
       this.onDisconnected(reason);
     });
+    this.socket.on("connect_error", (err) => {
+      console.error("[NetworkManager] 소켓 연결 에러:", err);
+      this.onError(err);
+    });
     this.socket.on("error", (err) => {
       console.error("[NetworkManager] 소켓 에러:", err);
       this.onError(err);
+    });
+    this.socket.on("reconnect_failed", () => {
+      console.error("[NetworkManager] 재연결 시도 횟수 초과 - 소켓 상태 리셋");
+      this.setSocketInitialized(false);
+      this.onError(new Error("서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요."));
+    });
+    this.socket.on("reconnect", (attempt: number) => {
+      console.log(`[NetworkManager] 재연결 성공 (${attempt}번째 시도)`);
     });
   }
 

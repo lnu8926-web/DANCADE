@@ -21,24 +21,46 @@ const http = require("http");
 const socketIo = require("socket.io");
 const cors = require("cors");
 
+const DEFAULT_ORIGINS = ["http://localhost:3000"];
+const DEFAULT_SERVER_PORT = 3001;
+
+function parseAllowedOrigins(value) {
+  if (!value) return DEFAULT_ORIGINS;
+
+  const origins = value
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  return origins.length > 0 ? origins : DEFAULT_ORIGINS;
+}
+
+function resolveServerPort() {
+  return (
+    process.env.SOCKET_SERVER_PORT ||
+    process.env.SERVER_PORT ||
+    process.env.PORT ||
+    DEFAULT_SERVER_PORT
+  );
+}
+
 const app = express();
 const server = http.createServer(app);
-const ALLOWED_ORIGINS = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(",").map((o) => o.trim())
-  : ["http://localhost:3000"];
+const ALLOWED_ORIGINS = parseAllowedOrigins(process.env.CORS_ORIGINS);
+const corsOptions = {
+  origin: ALLOWED_ORIGINS,
+  methods: ["GET", "POST"],
+  credentials: true,
+};
 
 const io = socketIo(server, {
-  cors: {
-    origin: ALLOWED_ORIGINS,
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
+  cors: corsOptions,
   transports: ["websocket"],
   pingTimeout: 60000,
   pingInterval: 25000,
 });
 
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // ===================================================================
@@ -200,7 +222,7 @@ app.get("/api/rooms/:gameType", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = resolveServerPort();
 server.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

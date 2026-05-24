@@ -1,4 +1,6 @@
-const NEXT_API_URL = process.env.NEXT_API_URL || "http://localhost:3000";
+import { getServerApiBaseUrl } from "@/lib/config/runtime";
+
+const NEXT_API_URL = getServerApiBaseUrl();
 const ITEM_BASE_URL = `${NEXT_API_URL}/api/items`
 
 // Project Info API

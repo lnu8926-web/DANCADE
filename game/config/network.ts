@@ -1,11 +1,14 @@
+import { getClientSocketUrl } from "@/lib/config/runtime";
+
 export const NETWORK_CONFIG = {
-  SOCKET_URL: process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001",
+  SOCKET_URL: getClientSocketUrl(),
 
   DEFAULT_OPTIONS: {
     transports: ["websocket", "polling"] as string[],
     reconnection: true,
-    reconnectionAttempts: 5,
+    reconnectionAttempts: 10,
     reconnectionDelay: 1000,
+    reconnectionDelayMax: 10000,
   },
 
   TIMEOUTS: {

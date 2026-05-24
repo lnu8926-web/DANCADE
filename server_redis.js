@@ -5,6 +5,29 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 const path = require('path');
 
+const DEFAULT_ORIGINS = ["http://localhost:3000"];
+const DEFAULT_SERVER_PORT = 3001;
+
+function parseAllowedOrigins(value) {
+  if (!value) return DEFAULT_ORIGINS;
+
+  const origins = value
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  return origins.length > 0 ? origins : DEFAULT_ORIGINS;
+}
+
+function resolveServerPort() {
+  return (
+    process.env.SOCKET_SERVER_PORT ||
+    process.env.SERVER_PORT ||
+    process.env.PORT ||
+    DEFAULT_SERVER_PORT
+  );
+}
+
 const { createClient: createRedisClient } = require('redis');
 const { createClient: createSupabaseClient } = require('@supabase/supabase-js');
 const { createAdapter } = require("@socket.io/redis-adapter");
@@ -79,18 +102,21 @@ const rooms = {
 // =====================================================================
 // [3] Socket.io 설정
 // =====================================================================
+const ALLOWED_ORIGINS = parseAllowedOrigins(process.env.CORS_ORIGINS);
+const corsOptions = {
+  origin: ALLOWED_ORIGINS,
+  methods: ["GET", "POST"],
+  credentials: true,
+};
+
 const io = new Server(server, {
-  cors: {
-    origin: ["http://3.25.232.135:3000","http://localhost:3000"],
-    methods: ["GET", "POST"],
-    credentials: true
-  },
+  cors: corsOptions,
   transports: ["websocket"],
   pingTimeout: 60000,
   pingInterval: 25000,
 });
 
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.get("/", (req, res) => res.status(200).send("ok"));
@@ -119,7 +145,7 @@ io.on("connection", (socket) => {
     const allPlayers = Object.values(allPlayersData).map(p => JSON.parse(p));
 
     io.emit("players:update", allPlayers);
-    io.emit("createNotice", { data: { content: `${username}님 환영합니다` } });
+    io.emit("createNotice", { content: `${username}님 환영합니다` });
   });
 
   socket.on("disconnect", async () => {
@@ -205,7 +231,7 @@ app.get("/api/rooms/:gameType", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3001; 
+const PORT = resolveServerPort(); 
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
