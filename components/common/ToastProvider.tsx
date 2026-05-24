@@ -3,6 +3,7 @@
 import { createContext, useContext, useState } from "react";
 import { Toast } from "../../game/types/toast";
 import ToastContainer from "./ToastContainer";
+import { generateUUID } from "@/lib/utils/uuid";
 
 interface ToastContextValue {
   showToast: (toast: Omit<Toast, "id">) => void;
@@ -14,7 +15,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const showToast = (toast: Omit<Toast, "id">) => {
-    const id = crypto.randomUUID();
+    const id = generateUUID();
     setToasts((prev) => [...prev, { ...toast, id }]);
 
     setTimeout(() => {

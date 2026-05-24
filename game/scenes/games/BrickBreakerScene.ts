@@ -10,6 +10,7 @@ import {
 import { BrickBreakerUIManager } from "@/game/managers/games/brickbreaker/BrickBreakerUIManager";
 import { BrickBreakerInputManager } from "@/game/managers/games/brickbreaker/BrickBreakerInputManager";
 import { BrickBreakerEffectsManager } from "@/game/managers/games/brickbreaker/BrickBreakerEffectsManager";
+import { generateUUID } from "@/lib/utils/uuid";
 
 import type {
   BrickBreakerConfig,
@@ -58,7 +59,7 @@ export class BrickBreakerScene extends BaseGameScene {
   init(data: { gameConfig?: GameConfig }) {
     this.gameConfig = data.gameConfig;
     // 중복 제출 방지용 sessionId 생성
-    this.sessionId = crypto.randomUUID();
+    this.sessionId = generateUUID();
   }
 
   // Phaser 생명주기: 에셋 로드

@@ -12,6 +12,7 @@ export function ChatInput({ onSend, isAnalyzing }: ChatInputProps) {
   const [inputValue, setInputValue] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -36,6 +37,7 @@ export function ChatInput({ onSend, isAnalyzing }: ChatInputProps) {
     if (!inputValue.trim()) return;
     await onSend(inputValue);
     setInputValue("");
+    inputRef.current?.blur();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -94,6 +96,7 @@ export function ChatInput({ onSend, isAnalyzing }: ChatInputProps) {
 
       <div className={styles.inputWrapper}>
         <input
+          ref={inputRef}
           type="text"
           className={styles.input}
           placeholder="바르고 고운말을 씁시다"
