@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getRankingsPage } from "@/lib/supabase/ranking";
 
 interface RankingItem {
@@ -15,16 +15,55 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
   const [rankings, setRankings] = useState<RankingItem[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [isPageVisible, setIsPageVisible] = useState(true);
   const totalPages = 5; // TOP 100 = 5페이지
+  const cacheRef = useRef<
+    Map<string, Map<number, { data: RankingItem[]; fetchedAt: number }>>
+  >(new Map());
+  const CACHE_TTL_MS = 30000;
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    const handleVisibilityChange = () => {
+      setIsPageVisible(!document.hidden);
+    };
+
+    handleVisibilityChange();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
 
   // 페이지 로드
   useEffect(() => {
     let isMounted = true;
 
+    const gameCache = cacheRef.current.get(gameType) ?? new Map();
+    if (!cacheRef.current.has(gameType)) {
+      cacheRef.current.set(gameType, gameCache);
+    }
+
+    const cached = gameCache.get(page);
+    const isCacheValid =
+      !!cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS;
+
+    if (isCacheValid && cached) {
+      setRankings(cached.data);
+      setLoading(false);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    setLoading(true);
+
     getRankingsPage(gameType, page).then((data) => {
       if (isMounted) {
         setRankings(data);
         setLoading(false);
+        gameCache.set(page, { data, fetchedAt: Date.now() });
       }
     });
 
@@ -35,16 +74,17 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
 
   // 자동 넘김 (5초마다)
   useEffect(() => {
+    if (!isPageVisible) return;
+
     const interval = setInterval(() => {
       setPage((prev) => {
-        setLoading(true);
         if (prev >= totalPages) return 1;
         return prev + 1;
       });
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [totalPages]);
+  }, [isPageVisible, totalPages]);
   const getMedalColor = (rank: number) => {
     if (rank === 1) return "🥇";
     if (rank === 2) return "🥈";
@@ -100,7 +140,6 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
           <button
             key={num}
             onClick={() => {
-              setLoading(true);
               setPage(num);
             }}
             className={`h-2 flex-1 rounded-full transition-all cursor-pointer ${
@@ -116,7 +155,6 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
       <div className="mt-4 flex justify-between gap-4">
         <button
           onClick={() => {
-            setLoading(true);
             setPage((p) => Math.max(1, p - 1));
           }}
           className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition"
@@ -125,7 +163,6 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
         </button>
         <button
           onClick={() => {
-            setLoading(true);
             setPage((p) => Math.min(totalPages, p + 1));
           }}
           className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition"
