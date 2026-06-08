@@ -19,19 +19,29 @@ interface ResultProps {
   }
 }
 
-const NEXT_API_URL = getServerApiBaseUrl();
-const EVENT_GAME_BASE_URL = `${NEXT_API_URL}/api/event/game`
+function resolveEventGameUrl(): string {
+  if (typeof window !== "undefined") {
+    return "/api/event/game";
+  }
+
+  return `${getServerApiBaseUrl()}/api/event/game`;
+}
 
 // Project Info API
 export async function getEventGame(): Promise<ResultProps> {
   try {
-    const url = `${EVENT_GAME_BASE_URL}`
-    const res = await fetch(url);
+    const url = resolveEventGameUrl();
+    const res = await fetch(url, { cache: "no-store" });
+
+    if (!res.ok) {
+      throw new Error(`Event game fetch failed: ${res.status} ${res.statusText}`);
+    }
+
     const data = await res.json();
 
     return data;
-  } catch (err){
-    console.log(err);
-    throw err;  
+  } catch (err) {
+    console.error("[getEventGame]", err);
+    throw err;
   }
 }
