@@ -73,6 +73,11 @@ app.use(express.json());
 const players = new Map();
 const rooms = new Map();
 
+// 고빈도 이벤트(이동/애니메이션) 서버 측 전송 제한 상태
+const playerRealtimeState = new Map();
+const MOVE_BROADCAST_INTERVAL_MS = 50;
+const ANIMATION_BROADCAST_INTERVAL_MS = 100;
+
 // 게임별 핸들러 추가
 const { registerAllHandlers } = require("./dist/handlers/registry");
 
@@ -82,6 +87,30 @@ const { registerAllHandlers } = require("./dist/handlers/registry");
 
 io.on("connection", (socket) => {
   console.log("플레이어 접속:", socket.id);
+
+  const resetRealtimeState = () => {
+    playerRealtimeState.set(socket.id, {
+      lastMoveAt: 0,
+      lastAnimationAt: 0,
+      lastAnimationSignature: "",
+    });
+  };
+
+  const removeLobbyPlayer = () => {
+    const player = players.get(socket.id);
+    if (!player) return;
+
+    console.log("❌ 퇴장:", player.username);
+    players.delete(socket.id);
+    io.emit("players:update", Array.from(players.values()));
+    resetRealtimeState();
+  };
+
+  playerRealtimeState.set(socket.id, {
+    lastMoveAt: 0,
+    lastAnimationAt: 0,
+    lastAnimationSignature: "",
+  });
 
   // =====================================================================
   // 채팅 이벤트
@@ -120,12 +149,9 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     // ------------------------------- 로비 플레이어 정리
-    const player = players.get(socket.id);
-    if (player) {
-      console.log("❌ 퇴장:", player.username);
-      players.delete(socket.id);
-      io.emit("players:update", Array.from(players.values()));
-    }
+    removeLobbyPlayer();
+
+    playerRealtimeState.delete(socket.id);
 
     // ------------------------------- 게임별 방 정리
     // omokDisconnectHandler.handleDisconnect();
@@ -137,8 +163,16 @@ io.on("connection", (socket) => {
   // 로비 이벤트
   // =====================================================================
 
+  socket.on("player:leave", () => {
+    removeLobbyPlayer();
+  });
+
   socket.on("player:join", (data) => {
     const { userId, username, gender, avatarId, customization, x, y } = data;
+
+    if (!playerRealtimeState.has(socket.id)) {
+      resetRealtimeState();
+    }
 
     players.set(socket.id, {
       socketId: socket.id,
@@ -159,22 +193,56 @@ io.on("connection", (socket) => {
   socket.on("player:move", (data) => {
     const { x, y } = data;
     const player = players.get(socket.id);
+    const realtimeState = playerRealtimeState.get(socket.id);
+    const now = Date.now();
 
     if (player) {
       player.x = x;
       player.y = y;
-      io.emit("player:moved", { socketId: socket.id, x, y });
+
+      if (
+        realtimeState &&
+        now - realtimeState.lastMoveAt < MOVE_BROADCAST_INTERVAL_MS
+      ) {
+        return;
+      }
+
+      if (realtimeState) {
+        realtimeState.lastMoveAt = now;
+      }
+
+      socket.broadcast.emit("player:moved", { socketId: socket.id, x, y });
     }
   });
 
   socket.on("player:animation", (data) => {
     const { direction, isMoving } = data;
     const player = players.get(socket.id);
+    const realtimeState = playerRealtimeState.get(socket.id);
+    const now = Date.now();
 
     if (player) {
       player.direction = direction;
       player.isMoving = isMoving;
-      io.emit("player:animationUpdate", {
+
+      const animationSignature = `${direction}:${isMoving ? "1" : "0"}`;
+      const isTooFrequent =
+        realtimeState &&
+        now - realtimeState.lastAnimationAt < ANIMATION_BROADCAST_INTERVAL_MS;
+      const isUnchanged =
+        realtimeState &&
+        realtimeState.lastAnimationSignature === animationSignature;
+
+      if (isTooFrequent && isUnchanged) {
+        return;
+      }
+
+      if (realtimeState) {
+        realtimeState.lastAnimationAt = now;
+        realtimeState.lastAnimationSignature = animationSignature;
+      }
+
+      socket.broadcast.emit("player:animationUpdate", {
         socketId: socket.id,
         direction,
         isMoving,

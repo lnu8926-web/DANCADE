@@ -1,8 +1,8 @@
 // game/managers/global/LobbyNetworkManager.ts
-import io, { Socket } from "socket.io-client";
+import type { Socket } from "socket.io-client";
 import LpcCharacter from "@/components/avatar/core/LpcCharacter";
 import { LpcSpriteManager } from "@/game/managers/global/LpcSpriteManager";
-import { getClientSocketUrl } from "@/lib/config/runtime";
+import { socket as sharedSocket } from "@/lib/socket";
 import type { CharacterState } from "@/components/avatar/utils/LpcTypes";
 
 // 플레이어 데이터 타입
@@ -42,9 +42,10 @@ interface LobbyNetworkCallbacks {
 
 export class LobbyNetworkManager {
   private scene: Phaser.Scene;
-  private socket!: Socket;
+  private socket: Socket;
   private lpcSpriteManager: LpcSpriteManager;
   private callbacks: LobbyNetworkCallbacks;
+  private listenersBound = false;
 
   // 온라인 플레이어 관리
   private onlinePlayers = new Map<string, OnlinePlayer>();
@@ -54,10 +55,50 @@ export class LobbyNetworkManager {
   // 위치 최적화
   private lastSentPosition = { x: 0, y: 0 };
   private readonly positionUpdateThreshold = 5;
+  private readonly positionUpdateIntervalMs = 50;
+  private lastSentPositionAt = 0;
   private lastSentAnimation: {
     direction: "up" | "down" | "left" | "right";
     isMoving: boolean;
   } | null = null;
+  private readonly animationUpdateIntervalMs = 100;
+  private lastSentAnimationAt = 0;
+
+  private readonly handleConnect = () => {
+    console.log("✅ Socket.io 연결 성공:", this.socket.id);
+  };
+
+  private readonly handlePlayersUpdate = (players: OnlinePlayer[]) => {
+    this.updateOnlinePlayers(players);
+  };
+
+  private readonly handlePlayerMoved = (data: PlayerMoveData) => {
+    if (data.socketId !== this.socket.id) {
+      this.movePlayerSprite(data.socketId, data.x, data.y);
+    }
+  };
+
+  private readonly handlePlayerAnimationUpdate = (data: {
+    socketId: string;
+    direction: "up" | "down" | "left" | "right";
+    isMoving: boolean;
+  }) => {
+    if (data.socketId !== this.socket.id) {
+      this.updatePlayerAnimation(data.socketId, data.direction, data.isMoving);
+    }
+  };
+
+  private readonly handleCreateEventGame = (data: EventGameData) => {
+    this.callbacks.onNotice?.(data.title);
+  };
+
+  private readonly handleCreateNotice = (data: NoticeData) => {
+    this.callbacks.onNotice?.(data.content);
+  };
+
+  private readonly handleDisconnect = () => {
+    console.log("❌ Socket.io 연결 끊김");
+  };
 
   constructor(
     scene: Phaser.Scene,
@@ -65,74 +106,45 @@ export class LobbyNetworkManager {
     callbacks: LobbyNetworkCallbacks = {}
   ) {
     this.scene = scene;
+    this.socket = sharedSocket;
     this.lpcSpriteManager = lpcSpriteManager;
     this.callbacks = callbacks;
   }
 
   // Socket.io 연결 및 이벤트 설정
   connect(): void {
-    const socketUrl = getClientSocketUrl();
-    this.socket = io(socketUrl, {
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      reconnectionAttempts: 5,
-      withCredentials: true,
-      transports: ["websocket"],
-    });
-
+    if (!this.socket.connected) {
+      this.socket.connect();
+    }
     this.setupEventListeners();
   }
 
   private setupEventListeners(): void {
-    // 연결 성공
-    this.socket.on("connect", () => {
-      console.log("✅ Socket.io 연결 성공:", this.socket.id);
-    });
+    if (this.listenersBound) return;
 
-    // 플레이어 목록 업데이트
-    this.socket.on("players:update", (players: OnlinePlayer[]) => {
-      console.log("👥 플레이어 업데이트:", players.length);
-      this.updateOnlinePlayers(players);
-    });
+    this.socket.on("connect", this.handleConnect);
+    this.socket.on("players:update", this.handlePlayersUpdate);
+    this.socket.on("player:moved", this.handlePlayerMoved);
+    this.socket.on("player:animationUpdate", this.handlePlayerAnimationUpdate);
+    this.socket.on("createEventGame", this.handleCreateEventGame);
+    this.socket.on("createNotice", this.handleCreateNotice);
+    this.socket.on("disconnect", this.handleDisconnect);
 
-    // 다른 플레이어 위치 업데이트
-    this.socket.on("player:moved", (data: PlayerMoveData) => {
-      if (data.socketId !== this.socket.id) {
-        this.movePlayerSprite(data.socketId, data.x, data.y);
-      }
-    });
+    this.listenersBound = true;
+  }
 
-    // 다른 플레이어 애니메이션 상태 업데이트
-    this.socket.on(
-      "player:animationUpdate",
-      (data: {
-        socketId: string;
-        direction: "up" | "down" | "left" | "right";
-        isMoving: boolean;
-      }) => {
-        if (data.socketId !== this.socket.id) {
-          this.updatePlayerAnimation(
-            data.socketId,
-            data.direction,
-            data.isMoving
-          );
-        }
-      }
-    );
+  private teardownEventListeners(): void {
+    if (!this.listenersBound) return;
 
-    this.socket.on("createEventGame", (data: EventGameData) => {
-      this.callbacks.onNotice?.(data.title);
-    });
+    this.socket.off("connect", this.handleConnect);
+    this.socket.off("players:update", this.handlePlayersUpdate);
+    this.socket.off("player:moved", this.handlePlayerMoved);
+    this.socket.off("player:animationUpdate", this.handlePlayerAnimationUpdate);
+    this.socket.off("createEventGame", this.handleCreateEventGame);
+    this.socket.off("createNotice", this.handleCreateNotice);
+    this.socket.off("disconnect", this.handleDisconnect);
 
-    this.socket.on("createNotice", (data: NoticeData) => {
-      this.callbacks.onNotice?.(data.content);
-    });
-
-    // 연결 끊김
-    this.socket.on("disconnect", () => {
-      console.log("❌ Socket.io 연결 끊김");
-    });
+    this.listenersBound = false;
   }
 
   // 게임에 입장
@@ -174,6 +186,7 @@ export class LobbyNetworkManager {
     }
   ): void {
     if (!this.socket || !this.socket.connected) return;
+    const now = Date.now();
 
     // 위치 전송 (threshold 이상 이동했을 때만)
     const distance = Phaser.Math.Distance.Between(
@@ -183,25 +196,31 @@ export class LobbyNetworkManager {
       position.y
     );
 
-    if (distance >= this.positionUpdateThreshold) {
+    if (
+      distance >= this.positionUpdateThreshold &&
+      now - this.lastSentPositionAt >= this.positionUpdateIntervalMs
+    ) {
       this.socket.emit("player:move", {
         x: position.x,
         y: position.y,
       });
       this.lastSentPosition = { x: position.x, y: position.y };
+      this.lastSentPositionAt = now;
     }
 
     // 애니메이션 상태 전송 (변경이 있을 때만)
     if (
-      !this.lastSentAnimation ||
-      this.lastSentAnimation.direction !== animation.direction ||
-      this.lastSentAnimation.isMoving !== animation.isMoving
+      now - this.lastSentAnimationAt >= this.animationUpdateIntervalMs &&
+      (!this.lastSentAnimation ||
+        this.lastSentAnimation.direction !== animation.direction ||
+        this.lastSentAnimation.isMoving !== animation.isMoving)
     ) {
       this.socket.emit("player:animation", {
         direction: animation.direction,
         isMoving: animation.isMoving,
       });
       this.lastSentAnimation = { ...animation };
+      this.lastSentAnimationAt = now;
     }
   }
 
@@ -330,11 +349,11 @@ export class LobbyNetworkManager {
 
   // 정리
   destroy(): void {
-    if (this.socket) {
-      console.log("Cleanup: Socket.io 연결 해제");
-      this.socket.disconnect();
-      this.socket.removeAllListeners();
+    if (this.socket?.connected) {
+      this.socket.emit("player:leave");
     }
+
+    this.teardownEventListeners();
 
     this.playerAvatars.forEach((avatar) => avatar.destroy());
     this.playerAvatars.clear();

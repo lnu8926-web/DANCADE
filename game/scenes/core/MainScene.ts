@@ -88,6 +88,15 @@ export class MainScene extends BaseGameScene {
     window.__avatarDataManager = this.avatarDataManager;
     window.__avatarManager = this.player;
     window.__mainScene = this;
+
+    window.dispatchEvent(
+      new CustomEvent("avatar-managers-ready", {
+        detail: {
+          avatarDataManager: this.avatarDataManager,
+          avatarManager: this.player,
+        },
+      })
+    );
   }
 
   // 화면에 무엇을 그릴 것인가

@@ -35,6 +35,11 @@ type WindowWithManagers = typeof window & {
   __avatarManager?: AvatarManager;
 };
 
+type AvatarManagersReadyEvent = CustomEvent<{
+  avatarDataManager: AvatarDataManager;
+  avatarManager: AvatarManager;
+}>;
+
 /* =========================
  * Inventory Component
  * ========================= */
@@ -52,42 +57,51 @@ export default function Inventory() {
   const { items, loading, fetchInventory } = useInventoryList(userId);
   const { showToast } = useToast();
 
+  const bindManagersFromWindow = () => {
+    const win = window as WindowWithManagers;
+    const adm = win.__avatarDataManager;
+    const am = win.__avatarManager;
+
+    if (!adm || !am) return false;
+
+    setAvatarDataManager(adm);
+    setAvatarManager(am);
+    return true;
+  };
+
   // 위치 및 드래그 훅
   const { position, setPosition } = useInventoryPosition({
     isOpen,
     avatarManager,
-    isDragging: false, // 초기값, 아래에서 덮어씀
+    isDragging: false,
     hasUserDragged: false,
   });
 
-  const { isDragging, hasUserDragged, handleMouseDown, resetDragState } = useInventoryDrag({
+  const { isDragging, handleMouseDown, resetDragState } = useInventoryDrag({
     position,
     setPosition,
   });
 
-  // 실제 위치 훅에 드래그 상태 전달
-  const { position: trackedPosition, setPosition: setTrackedPosition } = useInventoryPosition({
-    isOpen,
-    avatarManager,
-    isDragging,
-    hasUserDragged,
-  });
-
-  // Avatar Manager 연결
+  // Avatar Manager 연결 (이벤트 기반 + 초기 즉시 확인)
   useEffect(() => {
-    const interval = setInterval(() => {
-      const win = window as WindowWithManagers;
-      const adm = win.__avatarDataManager;
-      const am = win.__avatarManager;
+    bindManagersFromWindow();
 
-      if (adm && am) {
-        setAvatarDataManager(adm);
-        setAvatarManager(am);
-        clearInterval(interval);
+    const handleManagersReady = (event: Event) => {
+      const customEvent = event as AvatarManagersReadyEvent;
+      const { avatarDataManager: adm, avatarManager: am } = customEvent.detail;
+
+      if (!adm || !am) {
+        bindManagersFromWindow();
+        return;
       }
-    }, 300);
 
-    return () => clearInterval(interval);
+      setAvatarDataManager(adm);
+      setAvatarManager(am);
+    };
+
+    window.addEventListener("avatar-managers-ready", handleManagersReady);
+    return () =>
+      window.removeEventListener("avatar-managers-ready", handleManagersReady);
   }, []);
 
   // 인벤토리 닫힐 때 드래그 상태 초기화
@@ -181,9 +195,8 @@ export default function Inventory() {
     (it) => it.category === activeCategory.toLowerCase()
   );
 
-  const displayPosition = trackedPosition ?? position;
-  const style = displayPosition
-    ? { top: `${displayPosition.top}px`, left: `${displayPosition.left}px` }
+  const style = position
+    ? { top: `${position.top}px`, left: `${position.left}px` }
     : { top: "24px", right: "24px" };
 
   return (
