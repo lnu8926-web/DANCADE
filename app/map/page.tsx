@@ -6,12 +6,9 @@ const MapRenderer = dynamic(() => import("@/components/map/MapRenderer"), {
 });
 
 export default function MapPage() {
-  return(
+  return (
     <div className="w-full h-screen bg-black">
-      <div
-        id="game-container"
-        className="w-full h-full"
-      >
+      <div className="w-full h-full">
         <MapRenderer />
       </div>
     </div>
