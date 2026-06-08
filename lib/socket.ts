@@ -4,6 +4,11 @@ import { getClientSocketUrl } from "@/lib/config/runtime";
 
 // Socket.io 클라이언트 인스턴스 생성
 const socketUrl = getClientSocketUrl();
+const isProduction = process.env.NODE_ENV === "production";
+const socketTransports: Array<"websocket" | "polling"> = isProduction
+  ? ["websocket"]
+  : ["websocket", "polling"];
+
 export const socket = io(socketUrl, {
   autoConnect: false, // ✅ 기본은 연결 안 함 (멀티플레이 게임에서만 수동 연결)
   reconnection: true,
@@ -11,7 +16,7 @@ export const socket = io(socketUrl, {
   reconnectionDelayMax: 10000,
   reconnectionAttempts: 10,
   withCredentials: true,
-  transports: ["websocket", "polling"],
+  transports: socketTransports,
 });
 
 socket.on("reconnect_failed", () => {
