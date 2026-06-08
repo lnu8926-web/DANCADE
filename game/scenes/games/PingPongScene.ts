@@ -36,7 +36,6 @@ export class PingPongScene extends BaseGameScene {
   // Game State
   private gameState!: PingPongGameState;
   private inputState!: PingPongInputState;
-  private escKey!: Phaser.Input.Keyboard.Key;
   private pauseButton?: Phaser.GameObjects.Text;
   private pauseOverlayManager!: PauseOverlayManager;
 
@@ -108,10 +107,6 @@ export class PingPongScene extends BaseGameScene {
     // ⭐ 채팅 숨김 (게임 씬이므로)
     console.log("🎮 [핑퐁] 채팅 숨김 호출");
     this.hideChat();
-
-    this.escKey = this.input.keyboard!.addKey(
-      Phaser.Input.Keyboard.KeyCodes.ESC
-    );
 
     this.onGameReady();
   }
@@ -244,14 +239,6 @@ export class PingPongScene extends BaseGameScene {
 
   // ✅ update: 게임 로직 실행 (BaseGameScene 생명주기와 독립적)
   update(time: number, delta: number) {
-    if (
-      this.gameState.gameMode === "playing" &&
-      Phaser.Input.Keyboard.JustDown(this.escKey)
-    ) {
-      this.togglePauseMenu();
-      return;
-    }
-
     if (this.pauseOverlayManager.visible()) {
       return;
     }

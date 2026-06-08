@@ -33,7 +33,6 @@ export class OmokScene extends BaseGameScene {
 
   create() {
     super.create();
-    this.escKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
     console.log("오목 씬 테스트 - 초기화 완료");
   }
 
@@ -55,7 +54,6 @@ export class OmokScene extends BaseGameScene {
     aiHandler: IAiGameOverHandler<OmokSideType>;
   };
 
-  private escKey!: Phaser.Input.Keyboard.Key;
   private pauseButton?: Phaser.GameObjects.Text;
   private pauseOverlayManager!: PauseOverlayManager;
 
@@ -261,6 +259,7 @@ export class OmokScene extends BaseGameScene {
     this.managers.omok!.resetGame();
     this.managers.board!.clear();
     this.managers.board!.renderBoard();
+    this.createPauseButton();
     this.managers.ui!.createPlayerProfiles(mode, mySide);
     this.managers.ui!.updateTurnUI(this.flow.getCurrentTurn());
     this.managers.board!.updateForbiddenMarkers(this.flow.getCurrentTurn(), true);
@@ -610,19 +609,17 @@ export class OmokScene extends BaseGameScene {
   }
 
   update(): void {
-    if (!this.flow?.isGameStarted) return;
-
-    if (Phaser.Input.Keyboard.JustDown(this.escKey)) {
-      this.togglePauseMenu();
-    }
+    // Pause control is handled by the in-game button.
   }
 
   private createPauseButton = (): void => {
     this.pauseButton?.destroy();
 
-    const bounds = this.getViewportBounds();
+    const x = this.scale.width - 20;
+    const y = this.scale.height - 20;
+
     this.pauseButton = this.add
-      .text(bounds.right - 18, bounds.bottom - 18, "⏸", {
+      .text(x, y, "⏸", {
         fontFamily: "Arial",
         fontSize: "36px",
         color: "#ffffff",
@@ -630,7 +627,8 @@ export class OmokScene extends BaseGameScene {
         padding: { x: 10, y: 8 },
       })
       .setOrigin(1, 1)
-      .setDepth(40)
+      .setScrollFactor(0)
+      .setDepth(OMOK_CONFIG.DEPTH.MESSAGE + 10)
       .setInteractive({ useHandCursor: true });
 
     this.pauseButton.on("pointerover", () => {
@@ -663,14 +661,15 @@ export class OmokScene extends BaseGameScene {
   };
 
   private showPauseMenu = (): void => {
-    const bounds = this.getViewportBounds();
+    const width = this.scale.width;
+    const height = this.scale.height;
 
     this.pauseOverlayManager.show(
       {
-        centerX: bounds.centerX,
-        centerY: bounds.centerY,
-        width: bounds.width,
-        height: bounds.height,
+        centerX: width / 2,
+        centerY: height / 2,
+        width,
+        height,
       },
       {
         onResume: () => this.hidePauseMenu(),

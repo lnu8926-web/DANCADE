@@ -50,8 +50,6 @@ export class BrickBreakerScene extends BaseGameScene {
 
   // 스페이스바 키
   private spaceKey!: Phaser.Input.Keyboard.Key;
-  // ESC 키 (일시정지)
-  private escKey!: Phaser.Input.Keyboard.Key;
 
   constructor() {
     super({ key: "BrickBreakerScene" });
@@ -198,11 +196,6 @@ export class BrickBreakerScene extends BaseGameScene {
       Phaser.Input.Keyboard.KeyCodes.SPACE
     );
 
-    // ✅ ESC 키 등록 (일시정지)
-    this.escKey = this.input.keyboard!.addKey(
-      Phaser.Input.Keyboard.KeyCodes.ESC
-    );
-
     // ✅ 추가: "PRESS SPACE TO START" 텍스트
     const startText = this.add
       .text(400, 350, "PRESS SPACE TO START", {
@@ -295,12 +288,6 @@ export class BrickBreakerScene extends BaseGameScene {
   update(time: number, delta: number): void {
     // 일시정지 상태 확인
     const isPaused = this.gameManager.isPaused();
-
-    // ESC: 일시정지 옵션 열기/닫기
-    if (Phaser.Input.Keyboard.JustDown(this.escKey)) {
-      this.gameManager.togglePause();
-      return;
-    }
 
     // 일시정지 중이면 다른 입력 무시
     if (isPaused) {

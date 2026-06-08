@@ -14,6 +14,7 @@ interface PauseOverlayOptions {
   title?: string;
   resumeLabel?: string;
   lobbyLabel?: string;
+  hintLines?: string[];
   hintLine1?: string;
   hintLine2?: string;
 }
@@ -22,8 +23,9 @@ const DEFAULT_OPTIONS: Required<PauseOverlayOptions> = {
   title: "PAUSED",
   resumeLabel: "CONTINUE",
   lobbyLabel: "LOBBY",
-  hintLine1: "ESC or CONTINUE: Resume",
-  hintLine2: "LOBBY: Return to MainScene",
+  hintLines: [],
+  hintLine1: "CONTINUE를 누르면 바로 이어서 플레이할 수 있어요.",
+  hintLine2: "LOBBY를 누르면 메인 메뉴로 돌아가요.",
 };
 
 export class PauseOverlayManager {
@@ -39,7 +41,14 @@ export class PauseOverlayManager {
 
   constructor(scene: Phaser.Scene, options: PauseOverlayOptions = {}) {
     this.scene = scene;
-    this.options = { ...DEFAULT_OPTIONS, ...options };
+    this.options = {
+      ...DEFAULT_OPTIONS,
+      ...options,
+      hintLines:
+        options.hintLines && options.hintLines.length > 0
+          ? options.hintLines
+          : [options.hintLine1 ?? DEFAULT_OPTIONS.hintLine1, options.hintLine2 ?? DEFAULT_OPTIONS.hintLine2],
+    };
   }
 
   show(bounds: PauseMenuBounds, callbacks: PauseMenuCallbacks): void {
@@ -59,34 +68,26 @@ export class PauseOverlayManager {
     this.titleText = this.scene.add
       .text(bounds.centerX, bounds.centerY - 80, this.options.title, {
         fontFamily: '"Press Start 2P"',
-        fontSize: "48px",
+        fontSize: "40px",
         color: "#f1c40f",
         align: "center",
       })
       .setOrigin(0.5)
       .setDepth(31);
 
-    const hint1 = this.scene.add
-      .text(bounds.centerX, bounds.centerY + 10, this.options.hintLine1, {
-        fontFamily: "Arial",
-        fontSize: "18px",
-        color: "#ffffff",
-        align: "center",
-      })
-      .setOrigin(0.5)
-      .setDepth(31);
-
-    const hint2 = this.scene.add
-      .text(bounds.centerX, bounds.centerY + 40, this.options.hintLine2, {
-        fontFamily: "Arial",
-        fontSize: "16px",
-        color: "#bdc3c7",
-        align: "center",
-      })
-      .setOrigin(0.5)
-      .setDepth(31);
-
-    this.hintTexts = [hint1, hint2];
+    this.hintTexts = this.options.hintLines
+      .filter((line) => line.trim().length > 0)
+      .map((line, index) =>
+        this.scene.add
+          .text(bounds.centerX, bounds.centerY + 8 + index * 28, line, {
+            fontFamily: "Arial",
+            fontSize: index === 0 ? "18px" : "16px",
+            color: index === 0 ? "#ffffff" : "#bdc3c7",
+            align: "center",
+          })
+          .setOrigin(0.5)
+          .setDepth(31)
+      );
 
     const continueButton = this.scene.add
       .text(bounds.centerX, bounds.centerY + 95, this.options.resumeLabel, {
