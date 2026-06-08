@@ -12,24 +12,35 @@ const dummyRankings = Array.from({ length: 100 }, (_, i) => ({
   created_at: new Date().toISOString(),
 })).sort((a, b) => b.score - a.score);
 
-// 페이지별 랭킹 조회 (20개씩)
-export async function getRankings(
-  gameType: string
-): Promise<typeof dummyRankings> {
-  // TODO: 실제 Supabase 연동 시 아래 코드 사용
-
-  const { data, error } = await supabase
-    .from("leaderboards")
-    .select(
-      `
+const RANKING_SELECT_FIELDS = `
       *,
       users (
         nickname
       )
-    `
-    )
+    `;
+
+async function fetchLeaderboards(
+  gameType: string,
+  options?: { start?: number; end?: number }
+) {
+  let query = supabase
+    .from("leaderboards")
+    .select(RANKING_SELECT_FIELDS)
     .eq("game_type", gameType)
     .order("ranking", { ascending: true });
+
+  if (typeof options?.start === "number" && typeof options?.end === "number") {
+    query = query.range(options.start, options.end);
+  }
+
+  return query;
+}
+
+// 페이지별 랭킹 조회 (20개씩)
+export async function getRankings(
+  gameType: string
+): Promise<typeof dummyRankings> {
+  const { data, error } = await fetchLeaderboards(gameType);
 
   if (error) throw error;
 
@@ -92,19 +103,10 @@ export async function getRankingsPage(
   const pageSize = 20;
   const start = (page - 1) * pageSize;
 
-  const { data, error } = await supabase
-    .from("leaderboards")
-    .select(
-      `
-      *,
-      users (
-        nickname
-      )
-    `
-    )
-    .eq("game_type", gameType)
-    .order("ranking", { ascending: true })
-    .range(start, start + pageSize - 1);
+  const { data, error } = await fetchLeaderboards(gameType, {
+    start,
+    end: start + pageSize - 1,
+  });
 
   if (error) {
     console.error("[ranking] getRankingsPage 에러:", error);

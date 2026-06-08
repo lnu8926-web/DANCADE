@@ -3,6 +3,7 @@ import { socket } from "@/lib/socket";
 import { useGuestAuth } from "@/hooks/useGuestAuth";
 
 const ANALYZE_TIMEOUT_MS = 2500;
+const MAX_CHAT_MESSAGES = 300;
 
 interface AnalyzeResult {
   isBlocked: boolean;
@@ -53,7 +54,14 @@ export function useChatSocket(): UseChatSocketReturn {
     checkUserStatus();
 
     const handleMessage = (data: ChatMessage) => {
-      setMessages((prev) => [...prev, data]);
+      setMessages((prev) => {
+        const next = [...prev, data];
+        if (next.length <= MAX_CHAT_MESSAGES) {
+          return next;
+        }
+
+        return next.slice(next.length - MAX_CHAT_MESSAGES);
+      });
     };
 
     socket.on("lobby:chatMessage", handleMessage);
