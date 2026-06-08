@@ -19,6 +19,18 @@ interface BrickBreakerScoreRequest {
   lives: number;
 }
 
+interface BrickBreakerRankingRow {
+  id: string;
+  user_id: string;
+  score: number;
+  metadata?: Record<string, unknown> | null;
+  played_at?: string | null;
+  created_at?: string | null;
+  users?: {
+    nickname?: string;
+  } | null;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body: BrickBreakerScoreRequest = await request.json();
@@ -131,10 +143,9 @@ export async function GET(request: NextRequest) {
         id,
         user_id,
         score,
-        elapsed_time,
-        bricks_destroyed,
-        is_win,
+        metadata,
         played_at,
+        created_at,
         users:user_id (nickname)
       `
       )
@@ -145,6 +156,30 @@ export async function GET(request: NextRequest) {
     if (rankingError) {
       throw rankingError;
     }
+
+    const normalizedRankings = ((rankings as BrickBreakerRankingRow[] | null) || []).map(
+      (row) => {
+        const metadata =
+          row.metadata && typeof row.metadata === "object" ? row.metadata : {};
+
+        const elapsedTime = Number(metadata.elapsed_time ?? 0);
+        const bricksDestroyed = Number(metadata.bricks_destroyed ?? 0);
+        const isWin = Boolean(metadata.is_win ?? false);
+
+        return {
+          id: row.id,
+          user_id: row.user_id,
+          score: row.score,
+          elapsed_time: Number.isFinite(elapsedTime) ? elapsedTime : 0,
+          bricks_destroyed: Number.isFinite(bricksDestroyed)
+            ? bricksDestroyed
+            : 0,
+          is_win: isWin,
+          played_at: row.played_at || row.created_at,
+          users: row.users,
+        };
+      }
+    );
 
     // 유저별 최고 점수 조회
     let userBest = null;
@@ -163,7 +198,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      rankings,
+      rankings: normalizedRankings,
       userBest,
     });
   } catch (error) {
