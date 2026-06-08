@@ -1,7 +1,7 @@
 // game/managers/games/pingpong/ui/PingPongGameOverUIManager.ts
 
-import { TEXT_STYLE } from "@/game/types/common/ui.constants";
 import { PingPongGameResult } from "@/game/types/pingpong";
+import { BaseEndGameUI } from "@/game/managers/base";
 
 /**
  * 핑퐁 게임 종료 화면 UI 관리
@@ -11,6 +11,7 @@ import { PingPongGameResult } from "@/game/types/pingpong";
  */
 export class PingPongGameOverUIManager {
   private scene: Phaser.Scene;
+  private endGameUI: BaseEndGameUI;
 
   private readonly TEXT_STYLE = {
     FINAL_SCORE: {
@@ -37,6 +38,7 @@ export class PingPongGameOverUIManager {
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
+    this.endGameUI = new BaseEndGameUI(scene);
   }
 
   // =====================================================================
@@ -51,69 +53,59 @@ export class PingPongGameOverUIManager {
     onHome: () => void,
     gameResult?: PingPongGameResult
   ): void {
-    const depth = 10;
     const winner = isPlayerWin ? "YOU WIN!" : "GAME OVER";
 
-    this.createOverlay(0.7, depth);
-    this.createResultText(winner, isPlayerWin, depth);
-    this.createFinalScoreDisplay(playerScore, aiScore, depth);
+    this.endGameUI.show({
+      title: winner,
+      titleColor: isPlayerWin ? "#2ecc71" : "#e74c3c",
+      overlayAlpha: 0.7,
+      animation: isPlayerWin
+        ? { type: "scale", value: 1.1, duration: 300 }
+        : { type: "alpha", value: 0.3, duration: 500 },
+      titleY: 200,
+      restartY: 440,
+      homeY: 520,
+      restartLabel: "RESTART",
+      homeLabel: "HOME",
+      onRestart,
+      onHome,
+      renderContent: ({ scene, depth, centerX }) => {
+        const elements = this.createFinalScoreDisplay(
+          scene,
+          centerX,
+          playerScore,
+          aiScore,
+          depth
+        );
 
-    if (gameResult) {
-      this.createGameStats(gameResult, depth);
-    }
+        if (gameResult) {
+          elements.push(...this.createGameStats(scene, centerX, gameResult, depth));
+        }
 
-    this.createRestartButton(onRestart, 400, 440, depth + 1);
-    this.createHomeButton(onHome, 400, 520, depth + 1);
+        return elements;
+      },
+    });
   }
 
   // =====================================================================
   // UI 컴포넌트
   // =====================================================================
 
-  private createOverlay(alpha: number, depth: number): void {
-    const overlay = this.scene.add.rectangle(
-      400,
-      300,
-      800,
-      600,
-      0x000000,
-      alpha
-    );
-    overlay.setDepth(depth);
-  }
-
-  private createResultText(text: string, isWin: boolean, depth: number): void {
-    const resultText = this.scene.add
-      .text(400, 200, text, {
-        ...TEXT_STYLE.GAME_OVER,
-        color: isWin ? "#2ecc71" : "#e74c3c",
-      })
-      .setOrigin(0.5)
-      .setDepth(depth + 1);
-
-    this.scene.tweens.add({
-      targets: resultText,
-      ...(isWin
-        ? { scale: 1.1, duration: 300 }
-        : { alpha: 0.3, duration: 500 }),
-      yoyo: true,
-      repeat: -1,
-    });
-  }
-
   private createFinalScoreDisplay(
+    scene: Phaser.Scene,
+    centerX: number,
     playerScore: number,
     aiScore: number,
     depth: number
-  ): void {
-    this.scene.add
-      .text(400, 280, "PLAYER", this.TEXT_STYLE.LABEL)
+  ): Phaser.GameObjects.GameObject[] {
+    const playerLabel = scene.add
+      .text(centerX, 280, "PLAYER", this.TEXT_STYLE.LABEL)
       .setOrigin(0.5)
       .setDepth(depth + 1);
 
-    this.scene.add
+    const scoreText = scene.add
       .text(
-        400,
+        centerX,
         320,
         `${playerScore} - ${aiScore}`,
         this.TEXT_STYLE.FINAL_SCORE
@@ -121,13 +113,20 @@ export class PingPongGameOverUIManager {
       .setOrigin(0.5)
       .setDepth(depth + 1);
 
-    this.scene.add
-      .text(400, 360, "COMPUTER", this.TEXT_STYLE.LABEL)
+    const aiLabel = scene.add
+      .text(centerX, 360, "COMPUTER", this.TEXT_STYLE.LABEL)
       .setOrigin(0.5)
       .setDepth(depth + 1);
+
+    return [playerLabel, scoreText, aiLabel];
   }
 
-  private createGameStats(result: PingPongGameResult, depth: number): void {
+  private createGameStats(
+    scene: Phaser.Scene,
+    centerX: number,
+    result: PingPongGameResult,
+    depth: number
+  ): Phaser.GameObjects.GameObject[] {
     const stats = [
       `Rallies: ${result.totalRallies}`,
       `Longest: ${result.longestRally}`,
@@ -136,44 +135,12 @@ export class PingPongGameOverUIManager {
     ];
 
     const startY = 380;
-    this.scene.add
-      .text(400, startY, stats.join("  |  "), this.TEXT_STYLE.STATS)
+    const statsText = scene.add
+      .text(centerX, startY, stats.join("  |  "), this.TEXT_STYLE.STATS)
       .setOrigin(0.5)
       .setDepth(depth + 1);
-  }
 
-  private createRestartButton(
-    onRestart: () => void,
-    x: number,
-    y: number,
-    depth: number
-  ): void {
-    const button = this.scene.add
-      .text(x, y, "▶ RESTART", this.TEXT_STYLE.BUTTON)
-      .setOrigin(0.5)
-      .setDepth(depth)
-      .setInteractive({ useHandCursor: true });
-
-    button.on("pointerover", () => button.setColor("#ffff00"));
-    button.on("pointerout", () => button.setColor("#ffffff"));
-    button.on("pointerdown", onRestart);
-  }
-
-  private createHomeButton(
-    onHome: () => void,
-    x: number,
-    y: number,
-    depth: number
-  ): void {
-    const button = this.scene.add
-      .text(x, y, "🏠 HOME", this.TEXT_STYLE.BUTTON)
-      .setOrigin(0.5)
-      .setDepth(depth)
-      .setInteractive({ useHandCursor: true });
-
-    button.on("pointerover", () => button.setColor("#ffff00"));
-    button.on("pointerout", () => button.setColor("#ffffff"));
-    button.on("pointerdown", onHome);
+    return [statsText];
   }
 
   // =====================================================================
@@ -181,6 +148,6 @@ export class PingPongGameOverUIManager {
   // =====================================================================
 
   cleanup(): void {
-    // 필요시 정리 로직 추가
+    this.endGameUI.cleanup();
   }
 }

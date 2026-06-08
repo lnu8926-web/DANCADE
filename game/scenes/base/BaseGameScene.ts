@@ -29,6 +29,25 @@ export abstract class BaseGameScene extends BaseScene {
     return y + this.offsetY;
   }
 
+  /**
+   * 현재 카메라 뷰포트 기준의 실제 게임 표시 영역을 반환합니다.
+   * UI 고정 배치(옵션 버튼/일시정지 메뉴)에 사용합니다.
+   */
+  protected getViewportBounds() {
+    const view = this.cameras.main.worldView;
+
+    return {
+      left: view.x,
+      top: view.y,
+      right: view.right,
+      bottom: view.bottom,
+      width: view.width,
+      height: view.height,
+      centerX: view.centerX,
+      centerY: view.centerY,
+    };
+  }
+
   // =================================
   // 채팅 표시/숨김 헬퍼 메서드
   // =================================

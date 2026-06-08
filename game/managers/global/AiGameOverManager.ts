@@ -1,7 +1,5 @@
-import axios from "axios";
-import { UserData } from "@/types/user";
 import { GameSceneWithState } from "@/types/game";
-import { AiGameResultRequest } from "@/game/types/common/ai.types";
+import { submitAiGameResult } from "@/game/utils/gameResultClient";
 
 export class AiGameOverHandler<TSide = never> {
   private scene: GameSceneWithState<TSide>;
@@ -29,40 +27,16 @@ export class AiGameOverHandler<TSide = never> {
       ? Math.floor((Date.now() - startTime) / 1000)
       : 0;
 
-    let userId: string | undefined;
-
-    // 유저 ID 가져오기 (localStorage)
-    // const userData: UserData = JSON.parse(localStorage.getItem("user") || "{}");
-    // const userId = userData.uuid || userData.id || this.scene.currentUser?.uuid;
-
-    if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
-      try {
-        const userData: UserData = JSON.parse(
-          localStorage.getItem("user") || "{}"
-        );
-        userId = userData.uuid || userData.id;
-      } catch {
-        userId = this.scene.currentUser?.uuid;
-      }
-    } else {
-      userId = this.scene.currentUser?.uuid;
-    }
-
-    if (!userId) {
-      console.warn(`[${this.gameType}] 유저 ID를 찾을 수 없습니다.`);
-      return;
-    }
-
     try {
-      const requestData: AiGameResultRequest = {
+      const requestData = {
         gameType: this.gameType,
-        userId: userId,
+        userId: this.scene.currentUser?.uuid,
         userWon: isUserWin,
         duration: duration,
         points: this.basePoints,
       };
 
-      await axios.post("/api/game-result/ai", requestData);
+      await submitAiGameResult(requestData);
       console.log(`[${this.gameType}] AI 결과 저장 성공`);
     } catch (error) {
       console.error(`[${this.gameType}] 저장 실패:`, error);

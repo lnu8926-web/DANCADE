@@ -13,7 +13,8 @@ import { PingPongGameManager } from "@/game/managers/games/pingpong/PingPongGame
 import { PingPongUIManager } from "@/game/managers/games/pingpong/PingPongUIManager";
 import { PingPongInputManager } from "@/game/managers/games/pingpong/PingPongInputManager";
 import { PingPongEffectsManager } from "@/game/managers/games/pingpong/PingPongEffectsManager";
-import { getUserDataFromLocal } from "@/lib/utils/auth";
+import { PauseOverlayManager } from "@/game/managers/base";
+import { submitAiGameResult } from "@/game/utils/gameResultClient";
 
 /**
  * Real Ping Pong 게임 씬
@@ -35,6 +36,9 @@ export class PingPongScene extends BaseGameScene {
   // Game State
   private gameState!: PingPongGameState;
   private inputState!: PingPongInputState;
+  private escKey!: Phaser.Input.Keyboard.Key;
+  private pauseButton?: Phaser.GameObjects.Text;
+  private pauseOverlayManager!: PauseOverlayManager;
 
   // Color Selection
   private playerPaddleColorIndex: number =
@@ -78,7 +82,10 @@ export class PingPongScene extends BaseGameScene {
     // 2. Phaser 카메라 배경색 설정 (뷰포트 안쪽 영역)
     this.cameras.main.setBackgroundColor(backgroundColor);
 
-    // 3. 뷰포트 위치와 크기 설정 (중앙 정렬)
+    // 3. 카메라 월드 크기를 고정해 모든 게임 씬의 표시 영역을 일치시킴
+    this.cameras.main.setSize(this.GAME_WIDTH, this.GAME_HEIGHT);
+
+    // 4. 뷰포트 위치와 크기 설정 (중앙 정렬)
     this.cameras.main.setViewport(
       (screenWidth - this.GAME_WIDTH) / 2,
       (screenHeight - this.GAME_HEIGHT) / 2,
@@ -102,12 +109,17 @@ export class PingPongScene extends BaseGameScene {
     console.log("🎮 [핑퐁] 채팅 숨김 호출");
     this.hideChat();
 
+    this.escKey = this.input.keyboard!.addKey(
+      Phaser.Input.Keyboard.KeyCodes.ESC
+    );
+
     this.onGameReady();
   }
 
   protected initManagers(): void {
     this.uiManager = new PingPongUIManager(this);
     this.effectsManager = new PingPongEffectsManager(this);
+    this.pauseOverlayManager = new PauseOverlayManager(this);
 
     this.gameManager = new PingPongGameManager(this, this.gameState, {
       onScoreUpdate: (playerScore, aiScore) => {
@@ -152,6 +164,7 @@ export class PingPongScene extends BaseGameScene {
     this.createPaddles();
     this.createBall();
     this.uiManager.createGameUI();
+    this.createPauseButton();
 
     this.gameManager.setGameObjects(
       this.playerPaddle,
@@ -199,32 +212,12 @@ export class PingPongScene extends BaseGameScene {
     playerScore: number;
   }): Promise<void> {
     try {
-      const user = getUserDataFromLocal();
-      const userId = user?.uuid || user?.userId;
-
-      if (!userId) {
-        console.warn("[PingPong] 유저 정보가 없어 결과 저장을 건너뜁니다.");
-        return;
-      }
-
-      const response = await fetch("/api/game-result/ai", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          gameType: "pingpong",
-          userId,
-          userWon: gameResult.isWin,
-          duration: gameResult.elapsedTime,
-          points: Math.max(10, gameResult.playerScore * 5),
-        }),
+      await submitAiGameResult({
+        gameType: "pingpong",
+        userWon: gameResult.isWin,
+        duration: gameResult.elapsedTime,
+        points: Math.max(10, gameResult.playerScore * 5),
       });
-
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text || `HTTP ${response.status}`);
-      }
     } catch (error) {
       console.error("[PingPong] 결과 저장 실패:", error);
     }
@@ -243,12 +236,26 @@ export class PingPongScene extends BaseGameScene {
   }
 
   protected cleanupManagers(): void {
+    this.hidePauseMenu();
+    this.pauseOverlayManager.cleanup();
     this.inputManager.cleanup();
     this.uiManager.cleanup();
   }
 
   // ✅ update: 게임 로직 실행 (BaseGameScene 생명주기와 독립적)
   update(time: number, delta: number) {
+    if (
+      this.gameState.gameMode === "playing" &&
+      Phaser.Input.Keyboard.JustDown(this.escKey)
+    ) {
+      this.togglePauseMenu();
+      return;
+    }
+
+    if (this.pauseOverlayManager.visible()) {
+      return;
+    }
+
     this.inputManager.update();
 
     const moveDirection = this.inputManager.getPlayerMoveDirection();
@@ -373,6 +380,73 @@ export class PingPongScene extends BaseGameScene {
 
     this.gameManager.resetScores();
     this.gameManager.prepareServe();
+  }
+
+  private createPauseButton(): void {
+    this.pauseButton?.destroy();
+    const bounds = this.getViewportBounds();
+
+    this.pauseButton = this.add
+      .text(
+        bounds.right - 18,
+        bounds.bottom - 18,
+        "⏸",
+        {
+          fontFamily: "Arial",
+          fontSize: "36px",
+          color: "#ffffff",
+          backgroundColor: "#333333",
+          padding: { x: 10, y: 8 },
+        }
+      )
+      .setOrigin(1, 1)
+      .setDepth(40)
+      .setInteractive({ useHandCursor: true });
+
+    this.pauseButton.on("pointerover", () => {
+      this.pauseButton?.setStyle({ backgroundColor: "#555555" });
+    });
+
+    this.pauseButton.on("pointerout", () => {
+      this.pauseButton?.setStyle({ backgroundColor: "#333333" });
+    });
+
+    this.pauseButton.on("pointerdown", () => {
+      if (this.gameState.gameMode !== "playing") return;
+      this.togglePauseMenu();
+    });
+  }
+
+  private togglePauseMenu(): void {
+    if (this.pauseOverlayManager.visible()) {
+      this.hidePauseMenu();
+    } else {
+      this.showPauseMenu();
+    }
+  }
+
+  private showPauseMenu(): void {
+    const bounds = this.getViewportBounds();
+
+    this.pauseOverlayManager.show(
+      {
+        centerX: bounds.centerX,
+        centerY: bounds.centerY,
+        width: bounds.width,
+        height: bounds.height,
+      },
+      {
+        onResume: () => this.hidePauseMenu(),
+        onGoLobby: () => this.goHome(),
+      }
+    );
+
+    this.pauseButton?.setText("▶");
+  }
+
+  private hidePauseMenu(): void {
+    this.pauseOverlayManager.hide();
+    this.pauseButton?.setText("⏸");
   }
 
   // ============================================================

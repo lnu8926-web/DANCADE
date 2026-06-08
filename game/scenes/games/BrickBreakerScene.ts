@@ -11,6 +11,7 @@ import { BrickBreakerUIManager } from "@/game/managers/games/brickbreaker/BrickB
 import { BrickBreakerInputManager } from "@/game/managers/games/brickbreaker/BrickBreakerInputManager";
 import { BrickBreakerEffectsManager } from "@/game/managers/games/brickbreaker/BrickBreakerEffectsManager";
 import { generateUUID } from "@/lib/utils/uuid";
+import { submitBrickBreakerScore } from "@/game/utils/gameResultClient";
 
 import type {
   BrickBreakerConfig,
@@ -90,7 +91,10 @@ export class BrickBreakerScene extends BaseGameScene {
     // 2. 카메라 배경색 설정
     this.cameras.main.setBackgroundColor(backgroundColor);
 
-    // 3. 뷰포트 설정 (중앙 정렬)
+    // 3. 카메라 월드 크기를 고정해 모든 게임 씬의 표시 영역을 일치시킴
+    this.cameras.main.setSize(this.GAME_WIDTH, this.GAME_HEIGHT);
+
+    // 4. 뷰포트 설정 (중앙 정렬)
     this.cameras.main.setViewport(
       (screenWidth - this.GAME_WIDTH) / 2,
       (screenHeight - this.GAME_HEIGHT) / 2,
@@ -181,6 +185,10 @@ export class BrickBreakerScene extends BaseGameScene {
     this.uiManager.setPauseToggleCallback(() => {
       this.gameManager.togglePause();
     });
+    this.uiManager.setPauseMenuCallbacks({
+      onResume: () => this.gameManager.togglePause(),
+      onGoLobby: () => this.goHome(),
+    });
 
     this.gameManager.setGameObjects(this.paddle, this.ball, this.bricks);
     this.setupCollisions();
@@ -262,39 +270,11 @@ export class BrickBreakerScene extends BaseGameScene {
     try {
       console.log("📤 서버로 게임 결과 전송 중...");
 
-      // localStorage에서 사용자 정보 가져오기
-      const userDataStr = localStorage.getItem("user");
-      let userId: string | null = null;
-
-      if (userDataStr) {
-        try {
-          const userData = JSON.parse(userDataStr);
-          userId = userData.uuid || userData.id || userData.userId;
-        } catch (e) {
-          console.warn("localStorage 파싱 실패:", e);
-        }
-      }
-
-      if (!userId) {
-        console.warn("⚠️ 사용자 ID를 찾을 수 없습니다");
-        return;
-      }
-
-      const response = await fetch("/api/games/brick-breaker/score", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...data,
-          userId, // ✅ userId 추가
-          sessionId: this.sessionId,
-        }),
+      const result = await submitBrickBreakerScore({
+        data,
+        sessionId: this.sessionId,
       });
 
-      if (!response.ok) {
-        throw new Error(`서버 오류: ${response.status}`);
-      }
-
-      const result = await response.json();
       console.group("✅ 서버 응답 성공");
       console.log("응답 데이터:", result);
       console.groupEnd();
@@ -316,9 +296,10 @@ export class BrickBreakerScene extends BaseGameScene {
     // 일시정지 상태 확인
     const isPaused = this.gameManager.isPaused();
 
-    // ESC 키는 항상 받음 (일시정지 토글용)
+    // ESC: 일시정지 옵션 열기/닫기
     if (Phaser.Input.Keyboard.JustDown(this.escKey)) {
       this.gameManager.togglePause();
+      return;
     }
 
     // 일시정지 중이면 다른 입력 무시

@@ -20,6 +20,7 @@ import { GameNetworkCallbacks } from "@/game/types/multiplayer/network.types";
 import { RoomUIEvent } from "@/game/types/common/common.network.types";
 import { AiGameOverHandler } from "@/game/managers/global/AiGameOverManager";
 import { GameSceneWithState } from "@/types/game";
+import { PauseOverlayManager } from "@/game/managers/base";
 
 interface IAiGameOverHandler<TSide = never> {
   handle(winner: TSide): Promise<void>;
@@ -32,6 +33,7 @@ export class OmokScene extends BaseGameScene {
 
   create() {
     super.create();
+    this.escKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
     console.log("오목 씬 테스트 - 초기화 완료");
   }
 
@@ -53,6 +55,10 @@ export class OmokScene extends BaseGameScene {
     aiHandler: IAiGameOverHandler<OmokSideType>;
   };
 
+  private escKey!: Phaser.Input.Keyboard.Key;
+  private pauseButton?: Phaser.GameObjects.Text;
+  private pauseOverlayManager!: PauseOverlayManager;
+
   // =====================================================================
   // BaseGameScene 구현
   // =====================================================================
@@ -72,10 +78,13 @@ export class OmokScene extends BaseGameScene {
     this.setupEventListeners();
     this.setupInputHandler();
     this.setupRematchCallbacks();
+    this.createPauseButton();
+    this.setPauseButtonVisible(false);
   }
 
   protected initManagers(): void {
     this.flow = new OmokGameFlowManager(this);
+    this.pauseOverlayManager = new PauseOverlayManager(this);
     
     const network = this.createNetworkManager();
     const omok = this.createOmokManager();
@@ -255,6 +264,8 @@ export class OmokScene extends BaseGameScene {
     this.managers.ui!.createPlayerProfiles(mode, mySide);
     this.managers.ui!.updateTurnUI(this.flow.getCurrentTurn());
     this.managers.board!.updateForbiddenMarkers(this.flow.getCurrentTurn(), true);
+    this.hidePauseMenu();
+    this.setPauseButtonVisible(true);
   }
 
   // =====================================================================
@@ -315,6 +326,8 @@ export class OmokScene extends BaseGameScene {
     }
 
     const winnerName = this.flow.getWinnerName(winner);
+    this.hidePauseMenu();
+    this.setPauseButtonVisible(false);
     this.managers.ui!.showEndGameUI(
       winnerName,
       () => this.restartGame(),
@@ -339,6 +352,7 @@ export class OmokScene extends BaseGameScene {
   }
 
   private handlePlayerInput(pointer: Phaser.Input.Pointer): void {
+    if (this.pauseOverlayManager.visible()) return;
     if (!this.isInputValid()) return;
 
     const point = this.managers.board!.getGridIndex({ x: pointer.x, y: pointer.y });
@@ -554,12 +568,16 @@ export class OmokScene extends BaseGameScene {
   }
 
   private returnToModeSelection(): void {
+    this.hidePauseMenu();
+    this.setPauseButtonVisible(false);
     this.resetAllManagers();
     this.flow.resetAllState();
     this.scene.restart();
   }
 
   private exitToMainScene(): void {
+    this.hidePauseMenu();
+    this.setPauseButtonVisible(false);
     this.scene.start("MainScene");
   }
 
@@ -591,7 +609,87 @@ export class OmokScene extends BaseGameScene {
     return this.flow.mySide;
   }
 
+  update(): void {
+    if (!this.flow?.isGameStarted) return;
+
+    if (Phaser.Input.Keyboard.JustDown(this.escKey)) {
+      this.togglePauseMenu();
+    }
+  }
+
+  private createPauseButton = (): void => {
+    this.pauseButton?.destroy();
+
+    const bounds = this.getViewportBounds();
+    this.pauseButton = this.add
+      .text(bounds.right - 18, bounds.bottom - 18, "⏸", {
+        fontFamily: "Arial",
+        fontSize: "36px",
+        color: "#ffffff",
+        backgroundColor: "#333333",
+        padding: { x: 10, y: 8 },
+      })
+      .setOrigin(1, 1)
+      .setDepth(40)
+      .setInteractive({ useHandCursor: true });
+
+    this.pauseButton.on("pointerover", () => {
+      this.pauseButton?.setStyle({ backgroundColor: "#555555" });
+    });
+
+    this.pauseButton.on("pointerout", () => {
+      this.pauseButton?.setStyle({ backgroundColor: "#333333" });
+    });
+
+    this.pauseButton.on("pointerdown", () => {
+      if (!this.flow?.isGameStarted) return;
+      this.togglePauseMenu();
+    });
+  };
+
+  private setPauseButtonVisible = (visible: boolean): void => {
+    this.pauseButton?.setVisible(visible);
+    if (!visible) {
+      this.pauseButton?.setText("⏸");
+    }
+  };
+
+  private togglePauseMenu = (): void => {
+    if (this.pauseOverlayManager.visible()) {
+      this.hidePauseMenu();
+    } else {
+      this.showPauseMenu();
+    }
+  };
+
+  private showPauseMenu = (): void => {
+    const bounds = this.getViewportBounds();
+
+    this.pauseOverlayManager.show(
+      {
+        centerX: bounds.centerX,
+        centerY: bounds.centerY,
+        width: bounds.width,
+        height: bounds.height,
+      },
+      {
+        onResume: () => this.hidePauseMenu(),
+        onGoLobby: () => this.exitToMainScene(),
+      }
+    );
+
+    this.pauseButton?.setText("▶");
+  };
+
+  private hidePauseMenu = (): void => {
+    this.pauseOverlayManager?.hide();
+    this.pauseButton?.setText("⏸");
+  };
+
   shutdown(): void {
+    this.hidePauseMenu();
+    this.pauseOverlayManager?.cleanup();
+    this.pauseButton?.destroy();
     this.managers.abortDialog?.clear();
     this.managers.network?.cleanup();
     this.managers.onlineUI?.cleanup();
