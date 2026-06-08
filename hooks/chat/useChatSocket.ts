@@ -2,6 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import { socket } from "@/lib/socket";
 import { useGuestAuth } from "@/hooks/useGuestAuth";
 
+const ANALYZE_TIMEOUT_MS = 2500;
+
+interface AnalyzeResult {
+  isBlocked: boolean;
+  reason?: string | null;
+}
+
 export type MessageType = "chat" | "system" | "game" | "invite";
 
 export interface ChatMessage {
@@ -69,18 +76,24 @@ export function useChatSocket(): UseChatSocketReturn {
     setIsAnalyzing(true);
 
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), ANALYZE_TIMEOUT_MS);
+
       const analyzeResponse = await fetch("/api/chat/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ comment: message }),
+        signal: controller.signal,
       });
 
+      clearTimeout(timeout);
+
       if (!analyzeResponse.ok) {
-        const errorData = await analyzeResponse.json();
+        const errorData: { error?: string } = await analyzeResponse.json();
         throw new Error(errorData.error || "분석 실패");
       }
 
-      const analysisResult = await analyzeResponse.json();
+      const analysisResult: AnalyzeResult = await analyzeResponse.json();
 
       if (analysisResult.isBlocked) {
         alert(analysisResult.reason || "부적절한 내용이 감지되었습니다.");

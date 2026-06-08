@@ -9,17 +9,47 @@ interface AnalyzeResponse {
   };
 }
 
+interface AnalysisResult {
+  isBlocked: boolean;
+  scores: {
+    toxicity: number;
+    severeToxicity: number;
+    profanity: number;
+  };
+  reason: string | null;
+}
+
 // 독성 점수 기준
 const TOXICITY_THRESHOLD = 0.5; // 50% 이상이면 차단
+const API_TIMEOUT_MS = 2500;
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const analysisCache = new Map<string, { value: AnalysisResult; expiresAt: number }>();
+
+function buildAnalysisResult(data: AnalyzeResponse): AnalysisResult {
+  const toxicityScore = data.attributeScores?.TOXICITY?.summaryScore?.value ?? 0;
+  const severeToxicityScore =
+    data.attributeScores?.SEVERE_TOXICITY?.summaryScore?.value ?? 0;
+  const profanityScore = data.attributeScores?.PROFANITY?.summaryScore?.value ?? 0;
+
+  const isBlocked =
+    toxicityScore > TOXICITY_THRESHOLD ||
+    severeToxicityScore > 0.5 ||
+    profanityScore > 0.6;
+
+  return {
+    isBlocked,
+    scores: {
+      toxicity: toxicityScore,
+      severeToxicity: severeToxicityScore,
+      profanity: profanityScore,
+    },
+    reason: isBlocked ? "부적절한 내용이 감지되었습니다." : null,
+  };
+}
 
 export async function POST(request: NextRequest) {
   try {
     const { comment } = await request.json();
-
-    console.log("📝 분석 요청:", {
-      comment,
-      apiKey: process.env.PERSPECTIVE_API_KEY ? "설정됨" : "미설정",
-    });
 
     if (!comment || typeof comment !== "string") {
       return NextResponse.json(
@@ -28,13 +58,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!process.env.PERSPECTIVE_API_KEY) {
-      console.error("❌ PERSPECTIVE_API_KEY가 설정되지 않았습니다.");
+    const normalizedComment = comment.trim();
+    if (!normalizedComment) {
       return NextResponse.json(
-        { error: "API 키가 설정되지 않았습니다." },
-        { status: 500 }
+        {
+          isBlocked: false,
+          scores: { toxicity: 0, severeToxicity: 0, profanity: 0 },
+          reason: null,
+        },
+        { status: 200 }
       );
     }
+
+    const now = Date.now();
+    const cached = analysisCache.get(normalizedComment);
+    if (cached && cached.expiresAt > now) {
+      return NextResponse.json(cached.value, { status: 200 });
+    }
+
+    if (cached && cached.expiresAt <= now) {
+      analysisCache.delete(normalizedComment);
+    }
+
+    if (!process.env.PERSPECTIVE_API_KEY) {
+      return NextResponse.json(
+        {
+          isBlocked: false,
+          scores: { toxicity: 0, severeToxicity: 0, profanity: 0 },
+          reason: null,
+        },
+        { status: 200 }
+      );
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
     // Perspective API 호출
     const response = await fetch(
@@ -46,24 +104,20 @@ export async function POST(request: NextRequest) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          comment: { text: comment },
+          comment: { text: normalizedComment },
           requestedAttributes: {
             TOXICITY: {},
             SEVERE_TOXICITY: {},
-            PROFANITY: {}, // 욕설 감지 추가
+            PROFANITY: {},
           },
-          languages: ["ko"], // 한국어 설정
+          languages: ["ko"],
         }),
+        signal: controller.signal,
       }
     );
+    clearTimeout(timeout);
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error("❌ Perspective API 오류:", {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorData,
-      });
       return NextResponse.json(
         { error: `API 분석 실패: ${response.status} ${response.statusText}` },
         { status: 500 }
@@ -72,33 +126,19 @@ export async function POST(request: NextRequest) {
 
     const data: AnalyzeResponse = await response.json();
 
-    console.log("✅ Perspective API 응답:", { data, comment });
-
-    // 독성 점수 추출
-    const toxicityScore =
-      data.attributeScores?.TOXICITY?.summaryScore?.value ?? 0;
-    const severeToxicityScore =
-      data.attributeScores?.SEVERE_TOXICITY?.summaryScore?.value ?? 0;
-    const profanityScore =
-      data.attributeScores?.PROFANITY?.summaryScore?.value ?? 0;
-
-    // 차단 여부 판단
-    const isBlocked =
-      toxicityScore > TOXICITY_THRESHOLD ||
-      severeToxicityScore > 0.5 ||
-      profanityScore > 0.6;
-
-    return NextResponse.json({
-      isBlocked,
-      scores: {
-        toxicity: toxicityScore,
-        severeToxicity: severeToxicityScore,
-        profanity: profanityScore,
-      },
-      reason: isBlocked ? "부적절한 내용이 감지되었습니다." : null,
+    const result = buildAnalysisResult(data);
+    analysisCache.set(normalizedComment, {
+      value: result,
+      expiresAt: now + CACHE_TTL_MS,
     });
+
+    return NextResponse.json(result);
   } catch (error) {
-    console.error("분석 중 오류:", error);
+    if (error instanceof Error && error.name === "AbortError") {
+      return NextResponse.json({ error: "분석 요청 시간 초과" }, { status: 504 });
+    }
+
+    console.error("[chat/analyze]", error);
     return NextResponse.json({ error: "서버 오류 발생" }, { status: 500 });
   }
 }
