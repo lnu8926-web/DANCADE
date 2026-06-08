@@ -22,6 +22,9 @@ interface HandlerRegistration {
   ) => void;
 }
 
+const ENABLE_PINGPONG_ONLINE =
+  process.env.ENABLE_PINGPONG_ONLINE === "true";
+
 /**
  * 게임 핸들러 목록
  * 새 게임 추가 시 여기만 수정!
@@ -36,15 +39,19 @@ export const GAME_HANDLERS: HandlerRegistration[] = [
     },
     handler: createOmokHandler,
   },
-  {
-    gamePrefix: "pingpong",
-    config: {
-      maxPlayers: 2,
-      minPlayers: 2,
-      autoStart: false,
-    },
-    handler: createPingPongHandler,
-  },
+  ...(ENABLE_PINGPONG_ONLINE
+    ? [
+        {
+          gamePrefix: "pingpong",
+          config: {
+            maxPlayers: 2,
+            minPlayers: 2,
+            autoStart: false,
+          },
+          handler: createPingPongHandler,
+        },
+      ]
+    : []),
   // ✅ 새 게임 추가는 여기에!
   // {
   //   gamePrefix: "tetris",
