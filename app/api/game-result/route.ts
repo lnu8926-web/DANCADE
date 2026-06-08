@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       stats,
-      history,
+      history: [],
     });
   } catch (error) {
     console.error("[API] 통계 조회 실패:", error);

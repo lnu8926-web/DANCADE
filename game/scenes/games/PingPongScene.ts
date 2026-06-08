@@ -13,6 +13,7 @@ import { PingPongGameManager } from "@/game/managers/games/pingpong/PingPongGame
 import { PingPongUIManager } from "@/game/managers/games/pingpong/PingPongUIManager";
 import { PingPongInputManager } from "@/game/managers/games/pingpong/PingPongInputManager";
 import { PingPongEffectsManager } from "@/game/managers/games/pingpong/PingPongEffectsManager";
+import { getUserDataFromLocal } from "@/lib/utils/auth";
 
 /**
  * Real Ping Pong 게임 씬
@@ -176,7 +177,7 @@ export class PingPongScene extends BaseGameScene {
 
     // ✅ 나중에 서버로 전송할 데이터
     if (isValid) {
-      // TODO: API 호출
+      void this.saveSingleGameResult(gameResult);
       console.log("📤 서버로 전송할 데이터:", gameResult);
     }
 
@@ -190,6 +191,43 @@ export class PingPongScene extends BaseGameScene {
     );
 
     this.inputManager.registerRestartListener(() => this.restartGame());
+  }
+
+  private async saveSingleGameResult(gameResult: {
+    isWin: boolean;
+    elapsedTime: number;
+    playerScore: number;
+  }): Promise<void> {
+    try {
+      const user = getUserDataFromLocal();
+      const userId = user?.uuid || user?.userId;
+
+      if (!userId) {
+        console.warn("[PingPong] 유저 정보가 없어 결과 저장을 건너뜁니다.");
+        return;
+      }
+
+      const response = await fetch("/api/game-result/ai", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          gameType: "pingpong",
+          userId,
+          userWon: gameResult.isWin,
+          duration: gameResult.elapsedTime,
+          points: Math.max(10, gameResult.playerScore * 5),
+        }),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || `HTTP ${response.status}`);
+      }
+    } catch (error) {
+      console.error("[PingPong] 결과 저장 실패:", error);
+    }
   }
 
   protected restartGame(): void {
