@@ -11,9 +11,13 @@ import styles from "./ChatFrame.module.css";
 
 interface ChatFrameProps {
   onClose?: () => void;
+  initialHidden?: boolean;
 }
 
-export default function ChatFrame({ onClose }: ChatFrameProps) {
+export default function ChatFrame({
+  onClose,
+  initialHidden = false,
+}: ChatFrameProps) {
   const { showToast } = useToast();
 
   const {
@@ -27,7 +31,7 @@ export default function ChatFrame({ onClose }: ChatFrameProps) {
   } = useChatSocket();
 
   const [isFullHeight, setIsFullHeight] = useState(false);
-  const [isHidden, setIsHidden] = useState(false);
+  const [isHidden, setIsHidden] = useState(initialHidden);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
 
   useEffect(() => {

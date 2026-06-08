@@ -48,7 +48,7 @@ export default function GamePage() {
 
       {/* 채팅 오버레이 */}
       <div className="fixed bottom-8 left-8 z-50">
-        <ChatFrame />
+        <ChatFrame initialHidden />
       </div>
     </div>
   );
