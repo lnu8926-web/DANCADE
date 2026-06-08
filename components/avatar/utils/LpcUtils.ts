@@ -2,8 +2,8 @@ import { AssetConfig, CharacterPartState, ColorDef, LpcSprite, PaletteParams, Pa
 
 export class LpcUtils {
     // 타입 가드
-    static isStyledPart(config: AssetConfig): config is StyledPartConfig {
-        return 'styles' in config;
+    static isStyledPart(config: AssetConfig | undefined | null): config is StyledPartConfig {
+        return !!config && 'styles' in config;
     }
 
     // 색상 참조 해석 ($ref 처리)
@@ -31,6 +31,7 @@ export class LpcUtils {
             if (partName === 'head' || partName === 'nose') return; // Body 종속
 
             const config = data.assets[key];
+            if (!config) return;
 
             // 스타일 유무 체크
             if (this.isStyledPart(config)) {
@@ -77,6 +78,7 @@ export class LpcUtils {
             if (partName === 'head' || partName === 'nose') return; // Body 종속
 
             const config = data.assets[key];
+            if (!config) return;
 
             // 스타일 유무 체크
             if (this.isStyledPart(config)) {

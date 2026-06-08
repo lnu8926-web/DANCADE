@@ -57,6 +57,7 @@ export default class CharacterCustomScene extends Phaser.Scene {
       if (!partState || !this.lpcData) return;
 
       const config = this.lpcData.assets[partName];
+      if (!config) return;
       let assetKey = "";
 
       if (LpcUtils.isStyledPart(config)) {

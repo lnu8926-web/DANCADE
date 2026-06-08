@@ -8,6 +8,8 @@ export class LpcLoader {
         const palettes = data.definitions.palettes;
 
         Object.entries(data.assets).forEach(([partName, config]) => {
+            if (!config) return;
+
             // 스타일 유무 체크
             if (LpcUtils.isStyledPart(config)) {
                 // 해당항목: hair, torso, legs, feet 

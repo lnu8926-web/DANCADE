@@ -378,6 +378,7 @@ export default class LpcCharacter extends Phaser.GameObjects.Container {
       if (!partState) return;
 
       const config = lpcData.assets[partName];
+      if (!config) return;
       let assetKey = "";
 
       if (LpcUtils.isStyledPart(config)) {

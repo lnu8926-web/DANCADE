@@ -80,6 +80,8 @@ export class LpcSpriteManager {
     if (!lpcSprite) return [];
 
     const assets = lpcSprite.assets[part];
+    if (!assets) return [];
+
     if (LpcUtils.isStyledPart(assets)) {
       return (assets.styles || []).filter(
         (s) => !s.genders || s.genders.includes(gender)
