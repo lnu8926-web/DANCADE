@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/server";
 import { DB_TABLES } from "@/constants/tables";
+import { GameResultService } from "@/lib/services/gameResultService";
 
 // =====================================================================
 /**
@@ -29,6 +30,31 @@ interface BrickBreakerRankingRow {
   users?: {
     nickname?: string;
   } | null;
+}
+
+const AI_BOT_ID = "00000000-0000-0000-0000-000000000000";
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    value
+  );
+}
+
+async function resolveUserUuid(userId: string): Promise<string | null> {
+  if (!userId) return null;
+  if (isUuid(userId)) return userId;
+
+  const { data, error } = await supabase
+    .from(DB_TABLES.USERS)
+    .select("id")
+    .eq("userid", userId)
+    .maybeSingle();
+
+  if (error || !data?.id) {
+    return null;
+  }
+
+  return data.id;
 }
 
 export async function POST(request: NextRequest) {
@@ -93,9 +119,34 @@ export async function POST(request: NextRequest) {
       console.warn("[API] DB 저장 스킵:", dbError);
     }
 
-    // 유저 포인트 추가 (점수 기반)
+    // 공통 결과 저장 경로(GameResultService) 우선 사용
     const earnedPoints = Math.floor(score / 10);
+
+    let savedToCommonPipeline = false;
     if (earnedPoints > 0) {
+      try {
+        const userUuid = await resolveUserUuid(userId);
+        if (userUuid) {
+          const service = new GameResultService();
+          await service.saveGameResult({
+            room_id: `AI_BRICK_BREAKER_${sessionId}`,
+            game_type: "brick_breaker",
+            play_mode: "single",
+            winner_user_id: isWin ? userUuid : AI_BOT_ID,
+            loser_user_id: isWin ? AI_BOT_ID : userUuid,
+            winner_score: isWin ? earnedPoints : 0,
+            loser_score: isWin ? 0 : -Math.abs(Math.floor(earnedPoints / 2)),
+            game_duration: elapsedTime,
+          });
+          savedToCommonPipeline = true;
+        }
+      } catch (error) {
+        console.warn("[API] 공통 결과 저장 실패, fallback 사용:", error);
+      }
+    }
+
+    // fallback: UUID를 못 찾거나 공통 경로 실패 시 기존 포인트 지급 유지
+    if (earnedPoints > 0 && !savedToCommonPipeline) {
       try {
         await supabase.rpc("add_user_points", {
           p_user_id: userId,

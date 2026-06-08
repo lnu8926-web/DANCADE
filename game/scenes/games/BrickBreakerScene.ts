@@ -269,7 +269,7 @@ export class BrickBreakerScene extends BaseGameScene {
       if (userDataStr) {
         try {
           const userData = JSON.parse(userDataStr);
-          userId = userData.userId || userData.id;
+          userId = userData.uuid || userData.id || userData.userId;
         } catch (e) {
           console.warn("localStorage 파싱 실패:", e);
         }
