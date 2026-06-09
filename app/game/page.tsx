@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 
 import Inventory from "@/components/inventory/Inventory";
 import ChatFrame from "@/components/chat/ChatFrame";
+import ShopOverlay from "@/components/shop/ShopOverlay";
 import { useGuestAuth } from "@/hooks/useGuestAuth";
 
 const PhaserGame = dynamic(() => import("@/components/game/PhaserGame"), {
@@ -13,11 +14,12 @@ const PhaserGame = dynamic(() => import("@/components/game/PhaserGame"), {
 
 export default function GamePage() {
   const [nickname, setNickname] = useState<string | null>(null);
+  const [isShopOpen, setIsShopOpen] = useState(false);
   const { getStoredUser } = useGuestAuth();
 
   useEffect(() => {
     const user = getStoredUser();
-    setNickname(user?.nickname ?? "");
+    setNickname(user?.nickname ?? null);
 
     document.body.style.overflow = "hidden";
     document.documentElement.style.overflow = "hidden";
@@ -27,6 +29,17 @@ export default function GamePage() {
       document.documentElement.style.overflow = "auto";
     };
   }, [getStoredUser]);
+
+  useEffect(() => {
+    const handleShopOpen = () => setIsShopOpen(true);
+    window.addEventListener("shop:open", handleShopOpen);
+    return () => window.removeEventListener("shop:open", handleShopOpen);
+  }, []);
+
+  const handleShopClose = () => {
+    setIsShopOpen(false);
+    window.dispatchEvent(new CustomEvent("shop:closed"));
+  };
 
   return (
     <div className="min-h-screen overflow-hidden">
@@ -41,15 +54,19 @@ export default function GamePage() {
         )}
         <div className="flex justify-center mb-8">
           <PhaserGame />
-          {/* 인벤토리 컴포넌트 추가*/}
           <Inventory />
         </div>
       </main>
 
-      {/* 채팅 오버레이 */}
       <div className="fixed bottom-8 left-8 z-50">
         <ChatFrame initialHidden />
       </div>
+
+      {isShopOpen && (
+        <div className="fixed inset-0 z-[100] overflow-auto">
+          <ShopOverlay onClose={handleShopClose} />
+        </div>
+      )}
     </div>
   );
 }

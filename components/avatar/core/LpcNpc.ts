@@ -2,7 +2,6 @@
 import { AvatarManager } from "@/game/managers/global/AvatarManager";
 import { MainScene } from "@/game/scenes/core/MainScene";
 import { getEventGame } from "@/lib/supabase/event"
-import { getRankings } from "@/lib/supabase/ranking";
 
 export type NpcType = 'MERCHANT' | 'VILLAGER' | 'EVENT';
 
@@ -22,16 +21,14 @@ export const NPC_CONFIG: Record<NpcType, NpcData> = {
       scene.cameras.main.fadeOut(500, 0, 0, 0);
 
       scene.cameras.main.once('camerafadeoutcomplete', () => {
-        if (typeof window !== "undefined") {
-          window.location.assign("/shop");
-        }
+        window.dispatchEvent(new CustomEvent("shop:open"));
       });
     }
   },
   VILLAGER: {
     name: "랭킹 NPC",
     defaultSprite: "female",
-    interaction: async (scene, npc) => {
+    interaction: async (scene, _npc) => {
       scene.uiManager.showRankingBoardUI()
     }
   },

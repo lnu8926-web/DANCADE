@@ -56,7 +56,7 @@ export class MainScene extends BaseGameScene {
     this.load.json("lpc_config", "/assets/lpc_assets.json");
     this.load.once(
       "filecomplete-json-lpc_config",
-      (key: string, type: string, data: LpcSprite) => {
+      (_key: string, _type: string, data: LpcSprite) => {
         if (data?.assets) {
           this.lpcSpriteManager.setLpcSprite(data);
         }
@@ -224,13 +224,22 @@ export class MainScene extends BaseGameScene {
   }
 
   protected onGameReady(): void {
-    console.log("✅ [메인씬] 로비 진입 - 채팅 표시");
     this.showChat();
+    this.registerShopClosedListener();
   }
 
   wake(): void {
-    console.log("✅ [메인씬] 씬 복귀 - 채팅 표시");
     this.showChat();
+  }
+
+  private registerShopClosedListener(): void {
+    const handleShopClosed = () => {
+      this.cameras.main.fadeIn(500, 0, 0, 0);
+    };
+    window.addEventListener("shop:closed", handleShopClosed);
+    this.events.once("destroy", () => {
+      window.removeEventListener("shop:closed", handleShopClosed);
+    });
   }
 
   protected handleGameEnd(): void {}
