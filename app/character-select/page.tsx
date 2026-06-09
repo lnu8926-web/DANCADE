@@ -79,7 +79,7 @@ export default function CharacterSelect() {
             if (!styleId) return;
 
             const data = await getItemById(styleId);
-            const id = (data as { id: string }[] | null)?.[0]?.id;
+            const id = data?.[0]?.id;
             if (id) {
               await saveItemToInventory(memberUser.id, id);
             }

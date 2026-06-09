@@ -1,19 +1,13 @@
-import { getServerApiBaseUrl } from "@/lib/config/runtime";
-
-const NEXT_API_URL = getServerApiBaseUrl();
-const ITEM_BASE_URL = `${NEXT_API_URL}/api/items`
-
 // Project Info API
-export async function getItemById(id: string | undefined): Promise<null> {
-  try {
-    const url = `${ITEM_BASE_URL}?id=${id}`;
-    const res = await fetch(url);
-    const data = await res.json();
+export async function getItemById(id: string | undefined): Promise<{ id: string }[] | null> {
+  if (!id) return null;
 
-    return data;
-  } catch (err){
-    console.log(err);
-    throw err;  
+  try {
+    const res = await fetch(`/api/items?id=${id}`);
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
   }
 }
 
