@@ -9,8 +9,9 @@ interface WindowProps {
   children: React.ReactNode;
   className?: string;
   showMaximize?: boolean;
-  variant?: "page" | "modal"; // ✅ 추가
+  variant?: "page" | "modal";
   onClose?: () => void;
+  headerRight?: React.ReactNode;
 }
 
 export default function Window({
@@ -18,8 +19,9 @@ export default function Window({
   children,
   className = "",
   showMaximize = true,
-  variant = "page", // ✅ 기본값
+  variant = "page",
   onClose,
+  headerRight,
 }: WindowProps) {
   const router = useRouter();
   const isModal = variant === "modal";
@@ -63,7 +65,8 @@ export default function Window({
           <h2 className="text-black font-neo text-xl">{title}</h2>
 
           {/* 우측 아이콘 */}
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            {headerRight}
             {showMaximize && !isModal && (
               <button className="window-btn">
                 <Image src={windowMaximize} alt="" />

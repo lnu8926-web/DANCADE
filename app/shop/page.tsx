@@ -12,14 +12,13 @@ import { useProducts } from "@/hooks/shop/useProducts";
 import { useShopOwnedItems } from "@/hooks/shop/useShopOwnedItems";
 import { usePurchase } from "@/hooks/shop/usePurchase";
 
-import TransparentFrame from "@/components/common/TransparentFrame";
+import Window from "@/components/common/Window";
 import { UserPointBar } from "@/components/common/UserPointBar";
 import { useToast } from "@/components/common/ToastProvider";
 import CategoryTabs, { ShopCategory } from "@/components/shop/CategoryTabs";
 import ProductDetailModal from "@/components/shop/ProductDetailModal";
 import ProductList from "@/components/shop/ProductList";
 import ShopCharacterPreview from "@/components/shop/ShopCharacterPreview";
-import Header from "@/components/shop/ShopHeader";
 
 const SHOP_CATEGORY_TO_LPC_PART: Record<
   ShopCategory,
@@ -151,21 +150,16 @@ export default function ShopPage() {
 
   return (
     <main className="shopPage relative min-h-screen">
-      <div className="absolute top-4 right-6 z-50">
-        <UserPointBar />
-      </div>
-
-      <TransparentFrame>
-        <Header />
-        <div className="flex w-full h-full gap-6">
+      <Window title="SHOP" headerRight={<UserPointBar />}>
+        <div className="flex w-full gap-6">
           <div className="flex gap-6 pr-20">
-            <aside className="w-[280px] h-full flex items-center justify-center">
+            <aside className="w-[280px] flex items-center justify-center">
               {previewCharacter && (
                 <ShopCharacterPreview character={previewCharacter} />
               )}
             </aside>
 
-            <aside className="side-content w-40 h-full flex">
+            <aside className="side-content w-40 flex">
               <CategoryTabs
                 activeCategory={activeCategory}
                 onChange={setActiveCategory}
@@ -174,40 +168,40 @@ export default function ShopPage() {
           </div>
 
           {/* 카드 리스트 영역 */}
-          <section className="shop-content flex-1 relative min-h-[720px]">
-            <ProductList
-              products={pagedProducts}
-              onSelect={handlePreviewItem}
-              onBuy={handleBuyProduct}
-            />
+          <section className="shop-content flex-1 flex flex-col gap-4 min-h-[720px]">
+            <div className="flex-1">
+              <ProductList
+                products={pagedProducts}
+                onSelect={handlePreviewItem}
+                onBuy={handleBuyProduct}
+              />
+            </div>
 
             {/* 페이지네이션 */}
-            {
-              <div className="absolute -bottom-7 left-0 right-0 flex justify-center gap-4">
-                {Array.from({ length: totalPages }).map((_, i) => {
-                  const page = i + 1;
-                  const isActive = page === currentPage;
+            <div className="flex justify-center gap-4 py-2">
+              {Array.from({ length: totalPages }).map((_, i) => {
+                const page = i + 1;
+                const isActive = page === currentPage;
 
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`
-                        px-3 py-1
-                        text-sm transition
-                        ${
-                          isActive
-                            ? "bg-(--color-cyan) text-black font-bold"
-                            : "bg-black/40 text-white/50 hover:bg-(--color-cyan)/20 hover:text-white"
-                        }
-                      `}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
-              </div>
-            }
+                return (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`
+                      px-3 py-1
+                      text-sm transition
+                      ${
+                        isActive
+                          ? "bg-(--color-cyan) text-black font-bold"
+                          : "bg-black/40 text-white/50 hover:bg-(--color-cyan)/20 hover:text-white"
+                      }
+                    `}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+            </div>
 
             {isModalOpen && selectedProduct && (
               <ProductDetailModal
@@ -219,7 +213,7 @@ export default function ShopPage() {
             )}
           </section>
         </div>
-      </TransparentFrame>
+      </Window>
     </main>
   );
 }
