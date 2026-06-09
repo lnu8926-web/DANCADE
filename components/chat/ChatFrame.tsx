@@ -15,10 +15,25 @@ interface ChatFrameProps {
 
 export default function ChatFrame({ initialHidden = false }: ChatFrameProps) {
   const { showToast } = useToast();
-  const { messages, username, isGuestUser, isAnalyzing, sendMessage, sendQuickMessage, checkUserStatus, clearMessages } = useChatSocket();
+  const { messages, username, isGuestUser, isAnalyzing, mutedUntil, sendMessage, sendQuickMessage, checkUserStatus, clearMessages } = useChatSocket();
 
   const [isFocused, setIsFocused] = useState(false);
   const [isHidden, setIsHidden] = useState(initialHidden);
+  const [muteRemaining, setMuteRemaining] = useState(0);
+
+  useEffect(() => {
+    if (mutedUntil <= Date.now()) {
+      setMuteRemaining(0);
+      return;
+    }
+    const update = () => {
+      const remaining = Math.max(0, Math.ceil((mutedUntil - Date.now()) / 1000));
+      setMuteRemaining(remaining);
+    };
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [mutedUntil]);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const frameRef = useRef<HTMLDivElement>(null);
   const inputActivateRef = useRef<(() => void) | null>(null);
@@ -58,17 +73,18 @@ export default function ChatFrame({ initialHidden = false }: ChatFrameProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSendMessage = async (message: string) => {
+  const handleSendMessage = async (message: string): Promise<boolean> => {
     if (isGuestUser) {
       showToast({ type: "info", message: "채팅은 회원가입 후 사용할 수 있습니다." });
-      return;
+      return false;
     }
     const error = await sendMessage(message);
     if (error) {
       showToast({ type: "error", message: error });
-      return;
+      return false;
     }
     setIsFocused(false);
+    return true;
   };
 
   const handleEsc = useCallback(() => setIsFocused(false), []);
@@ -107,7 +123,7 @@ export default function ChatFrame({ initialHidden = false }: ChatFrameProps) {
           isFocused={isFocused}
         />
 
-        {isFocused && (
+        {(isFocused || messages.length === 0) && (
           isGuestUser ? (
             <GuestQuickPanel
               onQuickMessage={sendQuickMessage}
@@ -117,6 +133,7 @@ export default function ChatFrame({ initialHidden = false }: ChatFrameProps) {
             <ChatInput
               onSend={handleSendMessage}
               isAnalyzing={isAnalyzing}
+              muteRemaining={muteRemaining}
               onEsc={handleEsc}
               activateRef={inputActivateRef}
             />

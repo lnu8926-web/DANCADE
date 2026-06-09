@@ -25,6 +25,7 @@ interface UseChatSocketReturn {
   username: string;
   isGuestUser: boolean;
   isAnalyzing: boolean;
+  mutedUntil: number;
   sendMessage: (message: string) => Promise<string | null>;
   sendQuickMessage: (emoji: string) => void;
   checkUserStatus: () => void;
@@ -36,6 +37,7 @@ export function useChatSocket(): UseChatSocketReturn {
   const [username, setUsername] = useState("익명");
   const [isGuestUser, setIsGuestUser] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [mutedUntil, setMutedUntil] = useState(0);
 
   const { getStoredUser } = useGuestAuth();
 
@@ -117,6 +119,7 @@ export function useChatSocket(): UseChatSocketReturn {
       if (!ackResult.blocked) return null;
 
       if (ackResult.muted) {
+        setMutedUntil(Date.now() + ackResult.remainingMinutes * 60 * 1000);
         return `욕설 반복 사용으로 ${ackResult.remainingMinutes}분간 채팅이 제한됩니다.`;
       }
 
@@ -139,6 +142,7 @@ export function useChatSocket(): UseChatSocketReturn {
     username,
     isGuestUser,
     isAnalyzing,
+    mutedUntil,
     sendMessage,
     sendQuickMessage,
     checkUserStatus,

@@ -2,15 +2,16 @@ import { useState, useRef, useEffect } from "react";
 import styles from "./ChatFrame.module.css";
 
 interface ChatInputProps {
-  onSend: (message: string) => Promise<void>;
+  onSend: (message: string) => Promise<boolean>;
   isAnalyzing: boolean;
+  muteRemaining?: number;
   onEsc?: () => void;
   activateRef?: React.RefObject<(() => void) | null>;
 }
 
 const EMOJI_OPTIONS = ["😀", "😂", "😍", "🥰", "😎", "🤔", "😅", "😇"];
 
-export function ChatInput({ onSend, isAnalyzing, onEsc, activateRef }: ChatInputProps) {
+export function ChatInput({ onSend, isAnalyzing, muteRemaining = 0, onEsc, activateRef }: ChatInputProps) {
   const [inputValue, setInputValue] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
@@ -46,9 +47,11 @@ export function ChatInput({ onSend, isAnalyzing, onEsc, activateRef }: ChatInput
 
   const handleSend = async () => {
     if (!inputValue.trim()) return;
-    await onSend(inputValue);
+    const success = await onSend(inputValue);
     setInputValue("");
-    inputRef.current?.blur();
+    if (success) {
+      inputRef.current?.blur();
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -110,19 +113,26 @@ export function ChatInput({ onSend, isAnalyzing, onEsc, activateRef }: ChatInput
       </div>
 
       <div className={styles.inputWrapper}>
-        <input
-          ref={inputRef}
-          type="text"
-          className={styles.input}
-          placeholder="바르고 고운말을 씁시다"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onKeyUp={handleKeyUp}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          disabled={isAnalyzing}
-        />
+        {muteRemaining > 0 ? (
+          <span className={styles.muteTimerInline}>
+            채팅 제한 중&nbsp;&nbsp;
+            {String(Math.floor(muteRemaining / 60)).padStart(2, "0")}:{String(muteRemaining % 60).padStart(2, "0")}
+          </span>
+        ) : (
+          <input
+            ref={inputRef}
+            type="text"
+            className={styles.input}
+            placeholder="바르고 고운말을 씁시다"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onKeyUp={handleKeyUp}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            disabled={isAnalyzing}
+          />
+        )}
 
         <svg
           width="16"
