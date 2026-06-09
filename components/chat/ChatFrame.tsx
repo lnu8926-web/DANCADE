@@ -49,7 +49,7 @@ export default function ChatFrame({
 
   const handleSendMessage = async (message: string) => {
     if (isGuestUser) {
-      alert("채팅은 회원가입 후 사용할 수 있습니다.");
+      showToast({ type: "info", message: "채팅은 회원가입 후 사용할 수 있습니다." });
       return;
     }
     await sendMessage(message);

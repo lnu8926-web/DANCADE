@@ -201,20 +201,20 @@ export default function Inventory() {
 
   return (
     <div
-      className={`fixed w-[400px] h-[520px] bg-[rgba(10,15,30,0.85)] border border-white/20 rounded-lg backdrop-blur z-50 flex flex-col ${
+      className={`fixed w-[400px] h-[520px] bg-(--color-dark-blue) border border-(--color-navy) z-50 flex flex-col font-neo ${
         isDragging ? "cursor-move" : ""
       }`}
       style={style}
     >
       {/* Header */}
       <div
-        className="h-12 px-4 flex items-center justify-between border-b border-white/10 cursor-move select-none"
+        className="h-12 px-4 flex items-center justify-between bg-(--color-pink) cursor-move select-none"
         onMouseDown={handleMouseDown}
       >
-        <span className="text-white text-sm font-bold">Inventory</span>
+        <span className="text-black text-sm font-bold">INVENTORY</span>
         <button
           onClick={() => setIsOpen(false)}
-          className="text-white/60 text-xs hover:text-white"
+          className="text-black/60 text-xs hover:text-black"
           onMouseDown={(e) => e.stopPropagation()}
         >
           ✕
@@ -222,14 +222,14 @@ export default function Inventory() {
       </div>
 
       {/* 파츠 탭 */}
-      <div className="flex gap-2 px-3 py-2 border-b border-white/10">
+      <div className="flex gap-2 px-3 py-2 border-b border-(--color-navy)">
         {PART_CATEGORIES.map((cat) => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`px-3 py-1 text-xs rounded ${
+            className={`px-3 py-1 text-xs ${
               activeCategory === cat
-                ? "bg-white text-black"
+                ? "bg-(--color-cyan) text-black font-bold"
                 : "bg-white/10 text-white hover:bg-white/20"
             }`}
           >
@@ -250,7 +250,7 @@ export default function Inventory() {
                 name={item.name}
                 imageUrl={item.imageUrl}
                 isEquipped={item.isEquipped}
-                onDoubleClick={() => onEquipPart(item)}
+                onClick={() => onEquipPart(item)}
               />
             ))}
           </div>
@@ -258,15 +258,15 @@ export default function Inventory() {
       </div>
 
       {/* 색상 탭 */}
-      <div className="pt-3 pb-3 px-3 py-2 border-t border-white/10">
+      <div className="px-3 py-2 border-t border-(--color-navy)">
         <div className="flex gap-2 flex-wrap">
           {COLOR_CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveColorCategory(cat)}
-              className={`px-3 py-1 text-xs rounded ${
+              className={`px-3 py-1 text-xs ${
                 activeColorCategory === cat
-                  ? "bg-white text-black"
+                  ? "bg-(--color-cyan) text-black font-bold"
                   : "bg-white/10 text-white hover:bg-white/20"
               }`}
             >
@@ -283,10 +283,10 @@ export default function Inventory() {
             <button
               key={color}
               title={color}
-              onDoubleClick={() => onEquipColor(activeColorCategory, color)}
+              onClick={() => onEquipColor(activeColorCategory, color)}
               className={`w-6 h-6 rounded-full transition ${
                 isColorEquipped(activeColorCategory, color)
-                  ? "ring-2 ring-white-400 scale-110"
+                  ? "ring-2 ring-(--color-cyan) scale-110"
                   : "border border-white/40 hover:scale-110"
               }`}
               style={{ backgroundColor: COLOR_HEX[color] }}

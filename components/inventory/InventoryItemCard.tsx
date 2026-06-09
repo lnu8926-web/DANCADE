@@ -4,22 +4,21 @@ type InventoryProps = {
   name: string;
   imageUrl: string;
   isEquipped: boolean;
-    onDoubleClick?: () => void;
+  onClick?: () => void;
 };
 
 export default function InventoryItemCard({
   name,
   isEquipped,
-  onDoubleClick,
+  onClick,
 }: InventoryProps) {
   return (
     <div
-      onDoubleClick={onDoubleClick}
+      onClick={onClick}
+      role="button"
+      title="클릭하여 장착"
       className={`
-        title="더블클릭으로 장착"
-        role="button"
         h-[72px]
-        rounded
         flex
         items-center
         justify-center
@@ -29,7 +28,7 @@ export default function InventoryItemCard({
         border
         ${
           isEquipped
-            ? "border-blue-400 bg-blue-500/20"
+            ? "border-(--color-cyan) bg-(--color-cyan)/20"
             : "border-white/20 bg-white/10 hover:bg-white/20"
         }
       `}

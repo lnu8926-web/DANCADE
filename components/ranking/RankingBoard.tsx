@@ -16,7 +16,7 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [isPageVisible, setIsPageVisible] = useState(true);
-  const totalPages = 5; // TOP 100 = 5페이지
+  const totalPages = 5;
   const cacheRef = useRef<
     Map<string, Map<number, { data: RankingItem[]; fetchedAt: number }>>
   >(new Map());
@@ -36,7 +36,6 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []);
 
-  // 페이지 로드
   useEffect(() => {
     let isMounted = true;
 
@@ -72,19 +71,16 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
     };
   }, [page, gameType]);
 
-  // 자동 넘김 (5초마다)
   useEffect(() => {
     if (!isPageVisible) return;
 
     const interval = setInterval(() => {
-      setPage((prev) => {
-        if (prev >= totalPages) return 1;
-        return prev + 1;
-      });
+      setPage((prev) => (prev >= totalPages ? 1 : prev + 1));
     }, 5000);
 
     return () => clearInterval(interval);
   }, [isPageVisible, totalPages]);
+
   const getMedalColor = (rank: number) => {
     if (rank === 1) return "🥇";
     if (rank === 2) return "🥈";
@@ -93,39 +89,39 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
-      <h2 className="text-2xl font-bold text-white mb-4 text-center">
+    <div className="bg-(--color-dark-blue) border border-(--color-navy) p-6 w-full max-w-md font-neo">
+      <h2 className="text-xl text-(--color-cyan) mb-4 text-center tracking-widest">
         🏆 랭킹 TOP 100
       </h2>
 
-      {/* 현재 페이지 표시 */}
-      <div className="text-center text-gray-400 mb-4">
-        페이지 {page} / {totalPages}
+      <div className="text-center text-white/40 text-xs mb-4">
+        {page} / {totalPages}
       </div>
 
-      {/* 랭킹 리스트 */}
       <div className="space-y-2 min-h-[400px]">
         {loading ? (
-          <div className="text-center text-gray-400 py-8">로딩 중...</div>
+          <div className="text-center text-(--color-cyan)/60 py-8 text-sm">
+            로딩 중...
+          </div>
         ) : (
           rankings.map((rank, index) => {
             const rankNumber = (page - 1) * 20 + index + 1;
             return (
               <div
                 key={rank.id}
-                className={`flex justify-between items-center p-3 rounded-lg transition-all ${
+                className={`flex justify-between items-center px-3 py-2 transition-all ${
                   rankNumber <= 3
-                    ? "bg-linear-to-r from-yellow-600/30 to-yellow-500/10 border border-yellow-500/30"
-                    : "bg-gray-700/50 hover:bg-gray-700"
+                    ? "border border-(--color-cyan)/40 bg-(--color-cyan)/10"
+                    : "border border-white/10 bg-white/5 hover:bg-white/10"
                 }`}
               >
-                <span className="w-12 text-center font-bold text-lg">
+                <span className="w-12 text-center font-bold text-sm">
                   {getMedalColor(rankNumber)}
                 </span>
-                <span className="flex-1 text-white font-medium">
+                <span className="flex-1 text-white text-sm">
                   {rank.users.nickname}
                 </span>
-                <span className="text-yellow-400 font-bold">
+                <span className="text-(--color-cyan) font-bold text-sm">
                   {rank.score.toLocaleString()}점
                 </span>
               </div>
@@ -139,13 +135,11 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
         {[1, 2, 3, 4, 5].map((num) => (
           <button
             key={num}
-            onClick={() => {
-              setPage(num);
-            }}
-            className={`h-2 flex-1 rounded-full transition-all cursor-pointer ${
+            onClick={() => setPage(num)}
+            className={`h-1.5 flex-1 transition-all cursor-pointer ${
               page === num
-                ? "bg-blue-500 scale-110"
-                : "bg-gray-600 hover:bg-gray-500"
+                ? "bg-(--color-cyan) scale-110"
+                : "bg-white/20 hover:bg-white/40"
             }`}
           />
         ))}
@@ -154,18 +148,14 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
       {/* 이전/다음 버튼 */}
       <div className="mt-4 flex justify-between gap-4">
         <button
-          onClick={() => {
-            setPage((p) => Math.max(1, p - 1));
-          }}
-          className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition"
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          className="flex-1 py-2 border border-(--color-navy) text-white text-sm hover:border-(--color-cyan) hover:text-(--color-cyan) transition"
         >
           ◀ 이전
         </button>
         <button
-          onClick={() => {
-            setPage((p) => Math.min(totalPages, p + 1));
-          }}
-          className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition"
+          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          className="flex-1 py-2 border border-(--color-navy) text-white text-sm hover:border-(--color-cyan) hover:text-(--color-cyan) transition"
         >
           다음 ▶
         </button>

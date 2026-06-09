@@ -14,6 +14,7 @@ export default function ProductDetailModal({
   product,
   onClose,
   onPurchase,
+  isPurchasing,
 }: Props) {
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
@@ -55,15 +56,17 @@ export default function ProductDetailModal({
             ) : (
               <button
                 onClick={() => onPurchase(product)}
+                disabled={isPurchasing}
                 className="
                   flex-1 py-2
                   bg-teal-400
                   text-black font-semibold
                   hover:bg-teal-300
                   transition
+                  disabled:opacity-50 disabled:cursor-not-allowed
                 "
               >
-                구매
+                {isPurchasing ? "구매 중..." : "구매"}
               </button>
             )}
 

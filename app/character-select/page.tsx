@@ -17,6 +17,7 @@ import { CustomizationPanel } from "@/components/character-select/CustomizationP
 import { ErrorScreen } from "@/components/character-select/Error";
 import { LoadingScreen } from "@/components/character-select/Loading";
 import Window from "@/components/common/Window";
+import { useToast } from "@/components/common/ToastProvider";
 
 import { getItemById } from "@/lib/supabase/item";
 import { saveItemToInventory } from "@/lib/supabase/inventory";
@@ -34,6 +35,7 @@ export default function CharacterSelect() {
   const { saveCharacter } = useCharacterSave();
   const { saveCharacterLocal } = useCharacterStorage();
 
+  const { showToast } = useToast();
   const { lpcData, isLoading, error } = useLPCData();
   const {
     customization,
@@ -65,7 +67,7 @@ export default function CharacterSelect() {
       const result = await saveCharacter(memberUser.id, customization);
 
       if (!result) {
-        alert("캐릭터 저장 실패");
+        showToast({ type: "error", message: "캐릭터 저장에 실패했습니다." });
         return;
       } else {
         const parts = customization.parts;
@@ -96,6 +98,7 @@ export default function CharacterSelect() {
     saveCharacter,
     saveCharacterLocal,
     getOrCreateGuestUser,
+    showToast,
   ]);
 
   if (isLoading || !customization) return <LoadingScreen />;
