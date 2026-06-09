@@ -1,5 +1,6 @@
 "use client";
 import { Product } from "@/game/types/product";
+import { useProductThumbnail } from "@/hooks/shop/useProductThumbnail";
 
 interface ProductItemProps {
   product: Product;
@@ -8,39 +9,42 @@ interface ProductItemProps {
 }
 
 export default function ProductItem({ product, onSelectItem, onBuyItem }: ProductItemProps) {
+  const thumbnail = useProductThumbnail(product.category, product.style_key);
+
   return (
-    <div
-      onClick={onSelectItem}
-      className="relative cursor-pointer group"
-    >
-      <div
-        className="
-          absolute inset-0
-          translate-x-1.5 translate-y-1.5
-          border-2 border-(--color-cyan)
-          pointer-events-none
-        "
-      />
+    <div onClick={onSelectItem} className="relative cursor-pointer group">
+      <div className="absolute inset-0 translate-x-1.5 translate-y-1.5 border-2 border-(--color-cyan) pointer-events-none" />
 
       <div
         className={`
-          relative z-10
-          h-[200px] w-full
+          relative z-10 h-40 w-full
           bg-(--color-dark-blue)
-          flex flex-col justify-between
-          px-4 py-6
+          flex flex-col
           transition-all
-          ${
-            product.isOwned
-              ? ""
-              : "group-hover:-translate-x-0.5 group-hover:-translate-y-0.5"
-          }
+          ${product.isOwned ? "" : "group-hover:-translate-x-0.5 group-hover:-translate-y-0.5"}
         `}
       >
-        <div className="text-white text-center text-sm tracking-wide pt-8">
+        {/* 썸네일 */}
+        <div className="flex-1 flex items-center justify-center overflow-hidden">
+          {thumbnail ? (
+            <img
+              src={thumbnail}
+              alt={product.name}
+              style={{ imageRendering: "pixelated", width: 128, height: 128 }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">
+              ...
+            </div>
+          )}
+        </div>
+
+        {/* 이름 */}
+        <div className="text-white text-center text-xs tracking-wide px-2 pb-1 truncate">
           {product.name}
         </div>
 
+        {/* 가격 */}
         <div
           onClick={(e) => {
             e.stopPropagation();
@@ -49,12 +53,10 @@ export default function ProductItem({ product, onSelectItem, onBuyItem }: Produc
           }}
           className={`
             border-t border-(--color-cyan)/30
-            flex items-center justify-center gap-2 py-1
-            text-sm
-            ${
-              product.isOwned
-                ? "text-white/30 cursor-default"
-                : "text-(--color-cyan) hover:bg-(--color-cyan)/10 cursor-pointer"
+            flex items-center justify-center gap-2 py-1.5
+            ${product.isOwned
+              ? "text-white/30 cursor-default"
+              : "text-(--color-cyan) hover:bg-(--color-cyan)/10 cursor-pointer"
             }
           `}
         >

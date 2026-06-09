@@ -19,7 +19,7 @@ export default function ProductList({ products, onSelect, onBuy }: ProductListPr
         grid-cols-2
         md:grid-cols-3
         lg:grid-cols-4
-        gap-6
+        gap-4
         overflow-hidden
         pr-2
         pb-4   

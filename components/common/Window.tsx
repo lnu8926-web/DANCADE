@@ -81,8 +81,8 @@ export default function Window({
             bg-(--color-dark-blue)
             flex flex-col items-center justify-center
             ${isModal ? "p-6" : ""}
-            ${isPage ? "py-15 px-8 min-h-[800px] lg:max-h-[800px] gap-8" : ""}
-            ${isOverlay ? "py-10 px-8 max-h-[80vh] overflow-y-auto gap-8" : ""}
+            ${isPage ? "py-15 px-8 min-h-[900px] lg:max-h-[800px] gap-8" : ""}
+            ${isOverlay ? "py-6 px-6 gap-4" : ""}
           `}
         >
           {isPage && (

@@ -61,13 +61,6 @@ export default function ShopOverlay({ onClose }: ShopOverlayProps) {
     setPreviewCharacter(stored);
   }, [loadCharacterLocal]);
 
-  if (isLoading || ownedLoading)
-    return (
-      <div className="min-h-screen bg-(--color-dark-blue) flex items-center justify-center font-neo text-(--color-cyan) text-sm tracking-widest">
-        LOADING...
-      </div>
-    );
-
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const productsWithOwnership = products.map((product) => ({
@@ -139,8 +132,8 @@ export default function ShopOverlay({ onClose }: ShopOverlayProps) {
   return (
     <Window title="SHOP" variant="overlay" headerRight={<UserPointBar />} onClose={onClose}>
       <div className="flex w-full gap-6">
-        <div className="flex gap-6 pr-20">
-          <aside className="w-[280px] flex items-center justify-center">
+        <div className="flex gap-6 pr-6">
+          <aside className="w-40 flex items-start justify-center pt-4">
             {previewCharacter && (
               <ShopCharacterPreview character={previewCharacter} />
             )}
@@ -154,13 +147,19 @@ export default function ShopOverlay({ onClose }: ShopOverlayProps) {
           </aside>
         </div>
 
-        <section className="flex-1 flex flex-col gap-4 min-h-[720px]">
-          <div className="flex-1">
-            <ProductList
-              products={pagedProducts}
-              onSelect={handlePreviewItem}
-              onBuy={handleBuyProduct}
-            />
+        <section className="flex-1 flex flex-col gap-4 min-h-0">
+          <div className="h-[512px]">
+            {isLoading || ownedLoading ? (
+              <div className="flex items-center justify-center h-full text-(--color-cyan) text-sm tracking-widest">
+                LOADING...
+              </div>
+            ) : (
+              <ProductList
+                products={pagedProducts}
+                onSelect={handlePreviewItem}
+                onBuy={handleBuyProduct}
+              />
+            )}
           </div>
 
           <div className="flex justify-center gap-4 py-2">

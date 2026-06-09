@@ -15,6 +15,7 @@ const PhaserGame = dynamic(() => import("@/components/game/PhaserGame"), {
 export default function GamePage() {
   const [nickname, setNickname] = useState<string | null>(null);
   const [isShopOpen, setIsShopOpen] = useState(false);
+  const [shopMounted, setShopMounted] = useState(false);
   const { getStoredUser } = useGuestAuth();
 
   useEffect(() => {
@@ -31,7 +32,10 @@ export default function GamePage() {
   }, [getStoredUser]);
 
   useEffect(() => {
-    const handleShopOpen = () => setIsShopOpen(true);
+    const handleShopOpen = () => {
+      setShopMounted(true);
+      setIsShopOpen(true);
+    };
     window.addEventListener("shop:open", handleShopOpen);
     return () => window.removeEventListener("shop:open", handleShopOpen);
   }, []);
@@ -62,9 +66,9 @@ export default function GamePage() {
         <ChatFrame initialHidden />
       </div>
 
-      {isShopOpen && (
-        <div className="fixed inset-0 z-100 bg-black/70 flex items-center justify-center p-6">
-          <div className="w-full max-w-[1400px] max-h-[90vh] overflow-auto">
+      {shopMounted && (
+        <div className={`fixed inset-0 z-100 bg-black/70 flex items-center justify-center p-6 transition-opacity duration-200 ${isShopOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
+          <div className="w-full max-w-[900px]">
             <ShopOverlay onClose={handleShopClose} />
           </div>
         </div>

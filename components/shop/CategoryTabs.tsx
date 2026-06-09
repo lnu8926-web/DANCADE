@@ -19,11 +19,11 @@ export default function CategoryTabs({
   onChange,
 }: CategoryTabsProps) {
   return (
-    <nav className="relative h-full ">
+    <nav className="relative h-full">
       <div className="absolute left-0 top-0 h-full w-0.5 bg-white/80 rounded-sm" />
 
-      <div className="h-full flex items-center ">
-        <ul className="flex flex-col gap-15 py-2">
+      <div className="h-full flex items-start pt-4">
+        <ul className="flex flex-col gap-8 py-2">
           {SHOP_CATEGORIES.map((cat) => {
             const isActive = cat.key === activeCategory;
 
