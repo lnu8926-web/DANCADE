@@ -61,7 +61,12 @@ export default function ShopPage() {
     setPreviewCharacter(stored);
   }, [loadCharacterLocal]);
 
-  if (isLoading || ownedLoading) return <div>로딩중...</div>;
+  if (isLoading || ownedLoading)
+    return (
+      <div className="min-h-screen bg-(--color-dark-blue) flex items-center justify-center font-neo text-(--color-cyan) text-sm tracking-widest">
+        LOADING...
+      </div>
+    );
 
   // 파생값
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -188,12 +193,12 @@ export default function ShopPage() {
                       key={page}
                       onClick={() => setCurrentPage(page)}
                       className={`
-                        px-3 py-1 rounded
+                        px-3 py-1
                         text-sm transition
                         ${
                           isActive
-                            ? "bg-teal-400 text-black"
-                            : "bg-black/40 text-gray-300 hover:bg-teal-400/30"
+                            ? "bg-(--color-cyan) text-black font-bold"
+                            : "bg-black/40 text-white/50 hover:bg-(--color-cyan)/20 hover:text-white"
                         }
                       `}
                     >

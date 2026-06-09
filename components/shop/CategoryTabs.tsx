@@ -39,7 +39,7 @@ export default function CategoryTabs({
                   transition-all
                   ${
                     isActive
-                    ? "bg-teal-400 text-black font-semibold pr-20"
+                    ? "bg-(--color-cyan) text-black font-semibold pr-20"
                     : "text-white/70 hover:text-white"
                   }
                 `}

@@ -37,7 +37,7 @@ export default function ProductDetailModal({
 
           <div className="text-center font-semibold">
             가격&nbsp;
-            <span className="text-teal-400">{product.price} P</span>
+            <span className="text-(--color-cyan)">{product.price} P</span>
           </div>
 
           <div className="flex gap-3 pt-4">
@@ -59,9 +59,9 @@ export default function ProductDetailModal({
                 disabled={isPurchasing}
                 className="
                   flex-1 py-2
-                  bg-teal-400
+                  bg-(--color-cyan)
                   text-black font-semibold
-                  hover:bg-teal-300
+                  hover:bg-(--color-cyan)/80
                   transition
                   disabled:opacity-50 disabled:cursor-not-allowed
                 "

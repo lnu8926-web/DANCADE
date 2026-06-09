@@ -17,7 +17,7 @@ export default function ProductItem({ product, onSelectItem, onBuyItem }: Produc
         className="
           absolute inset-0
           translate-x-1.5 translate-y-1.5
-          border-2 border-teal-400
+          border-2 border-(--color-cyan)
           pointer-events-none
         "
       />
@@ -26,13 +26,13 @@ export default function ProductItem({ product, onSelectItem, onBuyItem }: Produc
         className={`
           relative z-10
           h-[200px] w-full
-          bg-black
+          bg-(--color-dark-blue)
           flex flex-col justify-between
           px-4 py-6
           transition-all
           ${
             product.isOwned
-              ? "bg-black"
+              ? ""
               : "group-hover:-translate-x-0.5 group-hover:-translate-y-0.5"
           }
         `}
@@ -42,16 +42,27 @@ export default function ProductItem({ product, onSelectItem, onBuyItem }: Produc
         </div>
 
         <div
-          onClick={(e)=> {
-            e.stopPropagation(); 
+          onClick={(e) => {
+            e.stopPropagation();
             if (product.isOwned) return;
             onBuyItem();
           }}
-          className="bg-white text-black flex items-center justify-center hover:bg-yellow-200 gap-2 py-1">
-          ⭐{product.isOwned ? (
-            <span className="text-xs font-bold opacity-40">보유중</span>
+          className={`
+            border-t border-(--color-cyan)/30
+            flex items-center justify-center gap-2 py-1
+            text-sm
+            ${
+              product.isOwned
+                ? "text-white/30 cursor-default"
+                : "text-(--color-cyan) hover:bg-(--color-cyan)/10 cursor-pointer"
+            }
+          `}
+        >
+          {product.isOwned ? (
+            <span className="text-xs font-bold">보유중</span>
           ) : (
             <>
+              <span className="text-xs">⭐</span>
               <span className="text-xs font-bold">{product.price}</span>
               <span className="text-xs">P</span>
             </>

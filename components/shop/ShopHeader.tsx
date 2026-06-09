@@ -22,9 +22,8 @@ export default function Header({
             px-3 py-1.5
             text-sm font-semibold
             bg-black/60 text-white
-            border border-teal-400/60
-            rounded
-            hover:bg-teal-400 hover:text-black
+            border border-(--color-cyan)/60
+            hover:bg-(--color-cyan) hover:text-black
             transition
           "
         >
