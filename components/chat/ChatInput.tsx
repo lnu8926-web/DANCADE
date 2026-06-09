@@ -22,8 +22,11 @@ export function ChatInput({ onSend, isAnalyzing, muteRemaining = 0, onEsc, activ
     return () => { if (activateRef) activateRef.current = null; };
   }, [activateRef]);
 
+  // 언마운트 시 게임 입력 잠금 해제 보장
   useEffect(() => {
-    inputRef.current?.focus();
+    return () => {
+      window.dispatchEvent(new Event("game:input-unlocked"));
+    };
   }, []);
 
   useEffect(() => {

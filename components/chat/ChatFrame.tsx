@@ -49,6 +49,13 @@ export default function ChatFrame({ initialHidden = false }: ChatFrameProps) {
     };
   }, []);
 
+  // isFocused 해제 시 게임 입력 잠금 해제 보장
+  useEffect(() => {
+    if (!isFocused) {
+      window.dispatchEvent(new Event("game:input-unlocked"));
+    }
+  }, [isFocused]);
+
   // Enter로 입력창 활성화
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
