@@ -16,11 +16,9 @@ export const NPC_CONFIG: Record<NpcType, NpcData> = {
     name: "상인",
     defaultSprite: "male",
     interaction: (scene, npc) => {
-      scene.uiManager.showSpeechBubble(npc, "상점으로 이동합니다...", 1000);
+      scene.uiManager.showSpeechBubble(npc, "상점으로 이동합니다...", 500);
 
-      scene.cameras.main.fadeOut(500, 0, 0, 0);
-
-      scene.cameras.main.once('camerafadeoutcomplete', () => {
+      scene.time.delayedCall(600, () => {
         window.dispatchEvent(new CustomEvent("shop:open"));
       });
     }

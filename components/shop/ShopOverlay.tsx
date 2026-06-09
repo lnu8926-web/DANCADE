@@ -137,7 +137,7 @@ export default function ShopOverlay({ onClose }: ShopOverlayProps) {
   };
 
   return (
-    <Window title="SHOP" headerRight={<UserPointBar />} onClose={onClose}>
+    <Window title="SHOP" variant="overlay" headerRight={<UserPointBar />} onClose={onClose}>
       <div className="flex w-full gap-6">
         <div className="flex gap-6 pr-20">
           <aside className="w-[280px] flex items-center justify-center">

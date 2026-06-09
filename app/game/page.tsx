@@ -63,8 +63,10 @@ export default function GamePage() {
       </div>
 
       {isShopOpen && (
-        <div className="fixed inset-0 z-[100] overflow-auto">
-          <ShopOverlay onClose={handleShopClose} />
+        <div className="fixed inset-0 z-100 bg-black/70 flex items-center justify-center p-6">
+          <div className="w-full max-w-[1400px] max-h-[90vh] overflow-auto">
+            <ShopOverlay onClose={handleShopClose} />
+          </div>
         </div>
       )}
     </div>

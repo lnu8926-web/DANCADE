@@ -225,21 +225,10 @@ export class MainScene extends BaseGameScene {
 
   protected onGameReady(): void {
     this.showChat();
-    this.registerShopClosedListener();
   }
 
   wake(): void {
     this.showChat();
-  }
-
-  private registerShopClosedListener(): void {
-    const handleShopClosed = () => {
-      this.cameras.main.fadeIn(500, 0, 0, 0);
-    };
-    window.addEventListener("shop:closed", handleShopClosed);
-    this.events.once("destroy", () => {
-      window.removeEventListener("shop:closed", handleShopClosed);
-    });
   }
 
   protected handleGameEnd(): void {}

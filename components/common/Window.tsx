@@ -9,7 +9,7 @@ interface WindowProps {
   children: React.ReactNode;
   className?: string;
   showMaximize?: boolean;
-  variant?: "page" | "modal";
+  variant?: "page" | "modal" | "overlay";
   onClose?: () => void;
   headerRight?: React.ReactNode;
 }
@@ -25,11 +25,13 @@ export default function Window({
 }: WindowProps) {
   const router = useRouter();
   const isModal = variant === "modal";
+  const isOverlay = variant === "overlay";
+  const isPage = variant === "page";
 
   const handleClose = () => {
     if (onClose) {
       onClose();
-    } else if (!isModal) {
+    } else if (isPage) {
       router.back();
     }
   };
@@ -38,17 +40,17 @@ export default function Window({
     <section
       className={`
         relative font-neo
-        ${isModal ? "h-auto" : "min-h-screen py-12 px-5"}
-        ${isModal ? "" : "drop-shadow-[0_0_14px_rgba(108,173,247,0.55)]"}
+        ${isPage ? "min-h-screen py-12 px-5 drop-shadow-[0_0_14px_rgba(108,173,247,0.55)]" : ""}
+        ${isModal ? "h-auto" : ""}
       `}
     >
-      {!isModal && (
+      {isPage && (
         <div className="absolute inset-0 bg-[url('/assets/background/common.png')] bg-cover bg-center bg-no-repeat opacity-15 -z-10" />
       )}
 
       <div
         className={`
-          ${isModal ? "w-full" : "max-w-[1400px] w-full"}
+          ${isPage ? "max-w-[1400px] w-full" : "w-full"}
           m-auto
           border border-(--color-navy)
           ${className}
@@ -56,18 +58,15 @@ export default function Window({
       >
         {/* 핑크색 타이틀바 */}
         <div className="window-header bg-(--color-pink) flex items-center justify-between px-4 py-3">
-          {/* 좌측 아이콘 */}
           <button className="window-icon" onClick={handleClose}>
             <Image src={windowClose} alt="" />
           </button>
 
-          {/* 중앙 타이틀 */}
           <h2 className="text-black font-neo text-xl">{title}</h2>
 
-          {/* 우측 아이콘 */}
           <div className="flex items-center gap-2">
             {headerRight}
-            {showMaximize && !isModal && (
+            {showMaximize && isPage && (
               <button className="window-btn">
                 <Image src={windowMaximize} alt="" />
               </button>
@@ -78,13 +77,15 @@ export default function Window({
         {/* 컨텐츠 영역 */}
         <div
           className={`
-            window-content relative 
+            window-content relative
             bg-(--color-dark-blue)
             flex flex-col items-center justify-center
-            ${isModal ? "p-6" : "py-15 px-8 min-h-[800px] lg:max-h-[800px] gap-8"}
+            ${isModal ? "p-6" : ""}
+            ${isPage ? "py-15 px-8 min-h-[800px] lg:max-h-[800px] gap-8" : ""}
+            ${isOverlay ? "py-10 px-8 max-h-[80vh] overflow-y-auto gap-8" : ""}
           `}
         >
-          {!isModal && (
+          {isPage && (
             <Image
               src={back}
               alt="뒤로가기"
