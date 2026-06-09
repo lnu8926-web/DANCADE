@@ -18,35 +18,21 @@ export function GuestQuickPanel({
   onRegisterClick,
 }: GuestQuickPanelProps) {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "10px",
-        padding: "10px",
-      }}
-    >
-      <div className={styles.guestUpgradePrompt}>
-        <span>전체 채팅 기능을 원하시나요?</span>
-        <button onClick={onRegisterClick} className={styles.guestPromptBtn}>
-          회원가입
+    <div className={styles.guestPanel}>
+      {QUICK_MESSAGES.map(({ emoji, title }) => (
+        <button
+          key={emoji}
+          className={styles.quickMessageBtn}
+          onClick={() => onQuickMessage(emoji)}
+          title={title}
+        >
+          {emoji}
         </button>
-      </div>
-      <div className={styles.guestQuickMessagePanel}>
-        <div className={styles.quickMessageLabel}>퀵메시지</div>
-        <div className={styles.guestQuickMessageContent}>
-          {QUICK_MESSAGES.map(({ emoji, title }) => (
-            <button
-              key={emoji}
-              className={styles.quickMessageBtn}
-              onClick={() => onQuickMessage(emoji)}
-              title={title}
-            >
-              {emoji}
-            </button>
-          ))}
-        </div>
-      </div>
+      ))}
+      <div className={styles.guestDivider} />
+      <button className={styles.guestRegisterBtn} onClick={onRegisterClick}>
+        회원가입으로 채팅하기 →
+      </button>
     </div>
   );
 }

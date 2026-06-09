@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import RegisterModal from "@/components/auth/RegisterModal";
 import { useToast } from "@/components/common/ToastProvider";
 import { useChatSocket } from "@/hooks/chat/useChatSocket";
@@ -10,41 +10,52 @@ import { GuestQuickPanel } from "./GuestQuickPanel";
 import styles from "./ChatFrame.module.css";
 
 interface ChatFrameProps {
-  onClose?: () => void;
   initialHidden?: boolean;
 }
 
-export default function ChatFrame({
-  onClose,
-  initialHidden = false,
-}: ChatFrameProps) {
+export default function ChatFrame({ initialHidden = false }: ChatFrameProps) {
   const { showToast } = useToast();
+  const { messages, username, isGuestUser, isAnalyzing, sendMessage, sendQuickMessage, checkUserStatus, clearMessages } = useChatSocket();
 
-  const {
-    messages,
-    username,
-    isGuestUser,
-    isAnalyzing,
-    sendMessage,
-    sendQuickMessage,
-    checkUserStatus,
-  } = useChatSocket();
-
-  const [isFullHeight, setIsFullHeight] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const [isHidden, setIsHidden] = useState(initialHidden);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const inputActivateRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     const handleChatShow = () => setIsHidden(false);
     const handleChatHide = () => setIsHidden(true);
-
     window.addEventListener("chat:show", handleChatShow);
     window.addEventListener("chat:hide", handleChatHide);
-
     return () => {
       window.removeEventListener("chat:show", handleChatShow);
       window.removeEventListener("chat:hide", handleChatHide);
     };
+  }, []);
+
+  // Enter로 입력창 활성화
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isHidden || isFocused) return;
+      if (e.key === "Enter" && !e.repeat) {
+        setIsFocused(true);
+        setTimeout(() => inputActivateRef.current?.(), 50);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isHidden, isFocused]);
+
+  // 바깥 클릭 시 포커스 해제
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (frameRef.current && !frameRef.current.contains(e.target as Node)) {
+        setIsFocused(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleSendMessage = async (message: string) => {
@@ -52,115 +63,69 @@ export default function ChatFrame({
       showToast({ type: "info", message: "채팅은 회원가입 후 사용할 수 있습니다." });
       return;
     }
-    await sendMessage(message);
+    const error = await sendMessage(message);
+    if (error) {
+      showToast({ type: "error", message: error });
+      return;
+    }
+    setIsFocused(false);
   };
 
-  const handleWaveClick = () => {
-    sendQuickMessage("👋");
-  };
+  const handleEsc = useCallback(() => setIsFocused(false), []);
 
   const handleRegisterSuccess = () => {
     setShowRegisterModal(false);
     checkUserStatus();
-    showToast({
-      type: "success",
-      message: "환영합니다! 회원가입이 완료되었습니다.",
-    });
+    showToast({ type: "success", message: "환영합니다! 회원가입이 완료되었습니다." });
   };
+
+  if (isHidden) {
+    return (
+      <>
+        <button className={styles.minimizedChatBtn} onClick={() => setIsHidden(false)} title="채팅창 표시">
+          💬
+        </button>
+        <RegisterModal isOpen={showRegisterModal} onClose={() => setShowRegisterModal(false)} onSuccess={handleRegisterSuccess} />
+      </>
+    );
+  }
 
   return (
     <>
-      <div
-        className={styles.chatFrame}
-        style={{
-          height: isFullHeight ? "calc(100vh - 50px)" : "415px",
-          display: isHidden ? "none" : "flex",
-        }}
-      >
-        <ChatHeader
-          isFullHeight={isFullHeight}
-          onToggleHeight={() => setIsFullHeight(!isFullHeight)}
-          onHide={() => setIsHidden(true)}
-          onClose={onClose}
-        />
-
+      <div ref={frameRef} className={styles.chatFrame} onClick={() => setIsFocused(true)}>
+        {isFocused && messages.length > 0 && (
+          <div className={styles.chatToolbar}>
+            <button className={styles.clearBtn} onClick={(e) => { e.stopPropagation(); clearMessages(); }} title="채팅 지우기">
+              지우기
+            </button>
+          </div>
+        )}
         <MessageList
           messages={messages}
           currentUsername={username}
-          onWaveClick={handleWaveClick}
+          onWaveClick={() => sendQuickMessage("👋")}
+          isFocused={isFocused}
         />
 
-        {isGuestUser ? (
-          <GuestQuickPanel
-            onQuickMessage={sendQuickMessage}
-            onRegisterClick={() => setShowRegisterModal(true)}
-          />
-        ) : (
-          <ChatInput onSend={handleSendMessage} isAnalyzing={isAnalyzing} />
+        {isFocused && (
+          isGuestUser ? (
+            <GuestQuickPanel
+              onQuickMessage={sendQuickMessage}
+              onRegisterClick={() => setShowRegisterModal(true)}
+            />
+          ) : (
+            <ChatInput
+              onSend={handleSendMessage}
+              isAnalyzing={isAnalyzing}
+              onEsc={handleEsc}
+              activateRef={inputActivateRef}
+            />
+          )
         )}
+
       </div>
 
-      {isHidden && (
-        <button
-          className={styles.minimizedChatBtn}
-          onClick={() => setIsHidden(false)}
-          title="채팅창 표시"
-        >
-          💬
-        </button>
-      )}
-
-      <RegisterModal
-        isOpen={showRegisterModal}
-        onClose={() => setShowRegisterModal(false)}
-        onSuccess={handleRegisterSuccess}
-      />
+      <RegisterModal isOpen={showRegisterModal} onClose={() => setShowRegisterModal(false)} onSuccess={handleRegisterSuccess} />
     </>
-  );
-}
-
-interface ChatHeaderProps {
-  isFullHeight: boolean;
-  onToggleHeight: () => void;
-  onHide: () => void;
-  onClose?: () => void;
-}
-
-function ChatHeader({
-  isFullHeight,
-  onToggleHeight,
-  onHide,
-  onClose,
-}: ChatHeaderProps) {
-  return (
-    <div className={styles.header}>
-      <span className={styles.title}>채팅</span>
-      <div className={styles.headerButtons}>
-        <button
-          onClick={onToggleHeight}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: 0,
-          }}
-          title={isFullHeight ? "원래 크기" : "전체 확대"}
-        >
-          <img src="/assets/ui/chevrons-vertical.png" alt="expand" />
-        </button>
-        <button
-          onClick={onHide}
-          className={styles.hideBtn}
-          title="채팅창 숨기기"
-        >
-          −
-        </button>
-      </div>
-      {onClose && (
-        <button className={styles.closeBtn} onClick={onClose}>
-          ✕
-        </button>
-      )}
-    </div>
   );
 }

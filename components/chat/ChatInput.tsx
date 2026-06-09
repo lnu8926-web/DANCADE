@@ -4,15 +4,26 @@ import styles from "./ChatFrame.module.css";
 interface ChatInputProps {
   onSend: (message: string) => Promise<void>;
   isAnalyzing: boolean;
+  onEsc?: () => void;
+  activateRef?: React.RefObject<(() => void) | null>;
 }
 
 const EMOJI_OPTIONS = ["😀", "😂", "😍", "🥰", "😎", "🤔", "😅", "😇"];
 
-export function ChatInput({ onSend, isAnalyzing }: ChatInputProps) {
+export function ChatInput({ onSend, isAnalyzing, onEsc, activateRef }: ChatInputProps) {
   const [inputValue, setInputValue] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (activateRef) activateRef.current = () => inputRef.current?.focus();
+    return () => { if (activateRef) activateRef.current = null; };
+  }, [activateRef]);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -42,6 +53,10 @@ export function ChatInput({ onSend, isAnalyzing }: ChatInputProps) {
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     e.stopPropagation();
+    if (e.key === "Escape") {
+      onEsc?.();
+      return;
+    }
     if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
       handleSend();

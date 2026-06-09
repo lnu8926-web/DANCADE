@@ -6,12 +6,14 @@ interface MessageListProps {
   messages: ChatMessage[];
   currentUsername: string;
   onWaveClick: () => void;
+  isFocused: boolean;
 }
 
 export function MessageList({
   messages,
   currentUsername,
   onWaveClick,
+  isFocused,
 }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -35,7 +37,7 @@ export function MessageList({
   }
 
   return (
-    <div className={styles.messagesContainer}>
+    <div className={`${styles.messagesContainer} ${isFocused ? styles.focused : ""}`}>
       {messages.map((msg, idx) => {
         const messageClass = getMessageClass(msg, currentUsername);
 

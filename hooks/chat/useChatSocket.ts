@@ -25,9 +25,10 @@ interface UseChatSocketReturn {
   username: string;
   isGuestUser: boolean;
   isAnalyzing: boolean;
-  sendMessage: (message: string) => Promise<void>;
+  sendMessage: (message: string) => Promise<string | null>;
   sendQuickMessage: (emoji: string) => void;
   checkUserStatus: () => void;
+  clearMessages: () => void;
 }
 
 export function useChatSocket(): UseChatSocketReturn {
@@ -71,15 +72,8 @@ export function useChatSocket(): UseChatSocketReturn {
     };
   }, [checkUserStatus]);
 
-  const sendMessage = async (message: string): Promise<void> => {
-    if (isGuestUser) {
-      alert("채팅은 회원가입 후 사용할 수 있습니다.");
-      return;
-    }
-
-    if (!message.trim() || isAnalyzing) {
-      return;
-    }
+  const sendMessage = async (message: string): Promise<string | null> => {
+    if (!message.trim() || isAnalyzing) return null;
 
     setIsAnalyzing(true);
 
@@ -104,15 +98,33 @@ export function useChatSocket(): UseChatSocketReturn {
       const analysisResult: AnalyzeResult = await analyzeResponse.json();
 
       if (analysisResult.isBlocked) {
-        alert(analysisResult.reason || "부적절한 내용이 감지되었습니다.");
-        return;
+        return analysisResult.reason || "부적절한 내용이 감지되었습니다.";
       }
 
-      // 소켓으로 전송
-      socket.emit("lobby:chat", { username, message });
+      type ChatAck =
+        | { blocked: false }
+        | { blocked: true; muted: false; warningsLeft: number }
+        | { blocked: true; muted: true; remainingMinutes: number };
+
+      const ackResult = await new Promise<ChatAck>((resolve) => {
+        const fallback = setTimeout(() => resolve({ blocked: false }), 3000);
+        socket.emit("lobby:chat", { username, message }, (res: ChatAck) => {
+          clearTimeout(fallback);
+          resolve(res ?? { blocked: false });
+        });
+      });
+
+      if (!ackResult.blocked) return null;
+
+      if (ackResult.muted) {
+        return `욕설 반복 사용으로 ${ackResult.remainingMinutes}분간 채팅이 제한됩니다.`;
+      }
+
+      return `부적절한 내용이 포함되어 있습니다. (경고 ${ackResult.warningsLeft}회 남음)`;
+
     } catch (error) {
       console.error("메시지 분석 중 오류:", error);
-      socket.emit("lobby:chat", { username, message });
+      return "메시지 전송에 실패했습니다. 잠시 후 다시 시도해주세요.";
     } finally {
       setIsAnalyzing(false);
     }
@@ -130,5 +142,6 @@ export function useChatSocket(): UseChatSocketReturn {
     sendMessage,
     sendQuickMessage,
     checkUserStatus,
+    clearMessages: () => setMessages([]),
   };
 }

@@ -85,6 +85,61 @@ const { registerAllHandlers } = require("./dist/handlers/registry");
 // Socket.io 연결
 // =====================================================================
 
+const CHAT_MAX_LENGTH = 200;
+const VIOLATION_LIMIT = 3;
+const MUTE_DURATION_MS = 5 * 60 * 1000;
+const BLOCKED_WORDS_REFRESH_MS = 10 * 60 * 1000;
+
+const FALLBACK_BLOCKED_PATTERNS = [
+  "씨발", "씨팔", "시발", "ㅅㅂ", "ㅆㅂ",
+  "개새끼", "개새", "ㄱㅅㄲ",
+  "병신", "ㅂㅅ",
+  "지랄",
+  "보지", "자지",
+  "창녀", "걸레년",
+  "씨빨", "시빨",
+  "fuck", "shit", "asshole", "bastard",
+];
+
+let blockedPatternsCache = [...FALLBACK_BLOCKED_PATTERNS];
+
+function normalizeVariants(text) {
+  const base = text.toLowerCase().replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-z]/g, "");
+  // 3회 이상 연속 반복 문자 제거: 씨이이이발 → 씨이발
+  const deduped = base.replace(/(.)\1{2,}/g, "$1$1");
+  // 자모(초성/중성) 제거 버전: 씨ㅎ발 → 씨발 (삽입된 자음 우회 처리)
+  const noJamo = deduped.replace(/[ㄱ-ㅎㅏ-ㅣ]/g, "");
+  return [deduped, noJamo];
+}
+
+function containsBlockedWord(text, patterns) {
+  const variants = normalizeVariants(text);
+  return patterns.some((w) => variants.some((v) => v.includes(w)));
+}
+
+async function loadBlockedPatterns() {
+  try {
+    const { data, error } = await supabase
+      .from("chat_blocked_words")
+      .select("word");
+
+    if (error) throw error;
+
+    if (data && data.length > 0) {
+      blockedPatternsCache = data.map((row) => row.word);
+      console.log(`[Chat] 차단 단어 ${blockedPatternsCache.length}개 로드됨`);
+    }
+  } catch (err) {
+    console.error("[Chat] 차단 단어 로드 실패, 기본값 사용:", err.message);
+  }
+}
+
+loadBlockedPatterns();
+setInterval(loadBlockedPatterns, BLOCKED_WORDS_REFRESH_MS);
+
+// socketId → { count: number, mutedUntil: number }
+const chatViolations = new Map();
+
 io.on("connection", (socket) => {
   console.log("플레이어 접속:", socket.id);
 
@@ -116,15 +171,52 @@ io.on("connection", (socket) => {
   // 채팅 이벤트
   // =====================================================================
 
-  socket.on("lobby:chat", (data) => {
+  socket.on("lobby:chat", (data, ack) => {
+    if (!data || typeof data !== "object") return;
     const { username, message } = data;
 
-    // 로비 전체에 브로드캐스트
+    if (!message || typeof message !== "string") return;
+    const trimmed = message.trim();
+    if (!trimmed || trimmed.length > CHAT_MAX_LENGTH) return;
+
+    const now = Date.now();
+    const violation = chatViolations.get(socket.id) || { count: 0, mutedUntil: 0 };
+
+    // 뮤트 상태 확인
+    if (violation.mutedUntil > now) {
+      const remainingMinutes = Math.ceil((violation.mutedUntil - now) / 60000);
+      if (typeof ack === "function") ack({ blocked: true, muted: true, remainingMinutes });
+      return;
+    }
+
+    // 뮤트 만료 시 카운트 초기화
+    if (violation.mutedUntil > 0 && violation.mutedUntil <= now) {
+      chatViolations.set(socket.id, { count: 0, mutedUntil: 0 });
+      violation.count = 0;
+      violation.mutedUntil = 0;
+    }
+
+    const isBlocked = containsBlockedWord(trimmed, blockedPatternsCache);
+
+    if (isBlocked) {
+      const newCount = violation.count + 1;
+      if (newCount >= VIOLATION_LIMIT) {
+        chatViolations.set(socket.id, { count: 0, mutedUntil: now + MUTE_DURATION_MS });
+        if (typeof ack === "function") ack({ blocked: true, muted: true, remainingMinutes: 5 });
+      } else {
+        chatViolations.set(socket.id, { count: newCount, mutedUntil: 0 });
+        if (typeof ack === "function") ack({ blocked: true, muted: false, warningsLeft: VIOLATION_LIMIT - newCount });
+      }
+      return;
+    }
+
     io.emit("lobby:chatMessage", {
       username,
-      message,
+      message: trimmed,
       timestamp: Date.now(),
     });
+
+    if (typeof ack === "function") ack({ blocked: false });
   });
 
   // =====================================================================
@@ -152,6 +244,7 @@ io.on("connection", (socket) => {
     removeLobbyPlayer();
 
     playerRealtimeState.delete(socket.id);
+    chatViolations.delete(socket.id);
 
     // ------------------------------- 게임별 방 정리
     // omokDisconnectHandler.handleDisconnect();
