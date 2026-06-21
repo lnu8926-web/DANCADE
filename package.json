@@ -18,7 +18,8 @@
     "lint": "eslint",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "upload-assets": "node scripts/upload-assets.js"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.5",
@@ -31,7 +32,7 @@
     "dotenv": "^17.2.3",
     "express": "^4.18.2",
     "gsap": "^3.14.2",
-    "next": "16.0.7",
+    "next": "^16.2.9",
     "phaser": "^3.90.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",

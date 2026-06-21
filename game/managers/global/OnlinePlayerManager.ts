@@ -12,6 +12,7 @@ import {
   PlayerMoveData,
 } from "@/types/onlinePlayer";
 import type { CharacterState } from "@/components/avatar/utils/LpcTypes";
+import { ASSET_PATHS } from "@/game/constants";
 
 export class OnlinePlayerManager {
   private socket!: Socket;
@@ -42,7 +43,7 @@ export class OnlinePlayerManager {
   }
 
   private loadLpcConfig(): void {
-    this.scene.load.json("lpc_config", "/assets/lpc_assets.json");
+    this.scene.load.json("lpc_config", ASSET_PATHS.LPC.CONFIG);
     this.scene.load.once(
       "filecomplete-json-lpc_config",
       (key: string, type: string, data: any) => {

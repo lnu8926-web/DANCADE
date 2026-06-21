@@ -11,6 +11,7 @@ import { LobbyNetworkManager } from "@/game/managers/global/LobbyNetworkManager"
 import { supabase } from "@/lib/supabase/client";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import type { LpcSprite } from "@/components/avatar/utils/LpcTypes";
+import { ASSET_PATHS } from "@/game/constants";
 
 // Window 확장 타입 정의
 declare global {
@@ -53,7 +54,7 @@ export class MainScene extends BaseGameScene {
 
     // LPC 아바타 매니저 초기화 (다른 플레이어용)
     this.lpcSpriteManager = new LpcSpriteManager();
-    this.load.json("lpc_config", "/assets/lpc_assets.json");
+    this.load.json("lpc_config", ASSET_PATHS.LPC.CONFIG);
     this.load.once(
       "filecomplete-json-lpc_config",
       (_key: string, _type: string, data: LpcSprite) => {

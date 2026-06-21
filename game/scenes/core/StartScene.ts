@@ -36,7 +36,7 @@ export class StartScene extends BaseGameScene {
   // 1. 에셋 로드 (BaseGameScene의 preload에서 자동 실행)
   protected loadAssets(): void {
     const basePath = ASSET_PATHS.GAME.KENNEY_PUZZLE;
-    this.load.image("game_background", "/assets/background/bg 1.png");
+    this.load.image("game_background", ASSET_PATHS.GAME.BACKGROUND);
     this.load.image("ball", `${basePath}ballBlue.png`);
     this.load.image("paddle", `${basePath}paddleBlu.png`);
     this.load.image("buttonDefault", `${basePath}buttonDefault.png`);

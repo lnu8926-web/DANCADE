@@ -1,21 +1,22 @@
 import * as Phaser from "phaser";
+import { ASSET_PATHS } from "@/game/constants";
 
 const TILE_IMAGES: Array<[string, string]> = [
-  ["CommonTile", "/tilesets/CommonTile.png"],
-  ["Plants", "/tilesets/Plants.png"],
-  ["arcade1", "/tilesets/arcade1.png"],
-  ["arcade2", "/tilesets/arcade2.png"],
-  ["BlueChair", "/tilesets/BlueChair.png"],
-  ["button", "/tilesets/button.png"],
-  ["button2", "/tilesets/button2.png"],
-  ["desk1", "/tilesets/desk1.png"],
-  ["desk2", "/tilesets/desk2.png"],
-  ["electronic", "/tilesets/electronic.png"],
-  ["mainDesk", "/tilesets/mainDesk.png"],
-  ["RedChair", "/tilesets/RedChair.png"],
-  ["storefrontSign", "/tilesets/storefrontSign.png"],
+  ["CommonTile", ASSET_PATHS.TILESETS.COMMON_TILE],
+  ["Plants", ASSET_PATHS.TILESETS.PLANTS],
+  ["arcade1", ASSET_PATHS.TILESETS.ARCADE1],
+  ["arcade2", ASSET_PATHS.TILESETS.ARCADE2],
+  ["BlueChair", ASSET_PATHS.TILESETS.BLUE_CHAIR],
+  ["button", ASSET_PATHS.TILESETS.BUTTON],
+  ["button2", ASSET_PATHS.TILESETS.BUTTON2],
+  ["desk1", ASSET_PATHS.TILESETS.DESK1],
+  ["desk2", ASSET_PATHS.TILESETS.DESK2],
+  ["electronic", ASSET_PATHS.TILESETS.ELECTRONIC],
+  ["mainDesk", ASSET_PATHS.TILESETS.MAIN_DESK],
+  ["RedChair", ASSET_PATHS.TILESETS.RED_CHAIR],
+  ["storefrontSign", ASSET_PATHS.TILESETS.STOREFRONT_SIGN],
 ];
-const MAIN_MAP = "/maps/DanArcadeLast9.tmj";
+const MAIN_MAP = ASSET_PATHS.MAPS.ARCADE;
 
 export class MapManager {
   //MapManager의 인스턴스는 Scene의 종속된다.
@@ -38,7 +39,7 @@ export class MapManager {
     //어느 씬에서 에셋을 등록하건 BaseCache에 저장되고 CacheManager 가 관리한다.
     this.loadImages(TILE_IMAGES);
     this.scene.load.tilemapTiledJSON("map", MAIN_MAP);
-    this.scene.load.image("bg1_1", "/tilesets/bg1_1.png");
+    this.scene.load.image("bg1_1", ASSET_PATHS.TILESETS.BG1_1);
   }
 
   public createMap() {
