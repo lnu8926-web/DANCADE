@@ -6,6 +6,8 @@ import dynamic from "next/dynamic";
 import Inventory from "@/components/inventory/Inventory";
 import ChatFrame from "@/components/chat/ChatFrame";
 import ShopOverlay from "@/components/shop/ShopOverlay";
+import RankingBoard from "@/components/ranking/RankingBoard";
+import Window from "@/components/common/Window";
 import { useGuestAuth } from "@/hooks/useGuestAuth";
 
 const PhaserGame = dynamic(() => import("@/components/game/PhaserGame"), {
@@ -16,6 +18,9 @@ export default function GamePage() {
   const [nickname, setNickname] = useState<string | null>(null);
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [shopMounted, setShopMounted] = useState(false);
+  const [isRankingOpen, setIsRankingOpen] = useState(false);
+  const [rankingMounted, setRankingMounted] = useState(false);
+  const [rankingGameType, setRankingGameType] = useState("omok");
   const { getStoredUser } = useGuestAuth();
 
   useEffect(() => {
@@ -40,9 +45,23 @@ export default function GamePage() {
     return () => window.removeEventListener("shop:open", handleShopOpen);
   }, []);
 
+  useEffect(() => {
+    const handleRankingOpen = () => {
+      setRankingMounted(true);
+      setIsRankingOpen(true);
+    };
+    window.addEventListener("ranking:open", handleRankingOpen);
+    return () => window.removeEventListener("ranking:open", handleRankingOpen);
+  }, []);
+
   const handleShopClose = () => {
     setIsShopOpen(false);
     window.dispatchEvent(new CustomEvent("shop:closed"));
+  };
+
+  const handleRankingClose = () => {
+    setIsRankingOpen(false);
+    window.dispatchEvent(new CustomEvent("ranking:closed"));
   };
 
   return (
@@ -70,6 +89,31 @@ export default function GamePage() {
         <div className={`fixed inset-0 z-100 bg-black/70 flex items-center justify-center p-6 transition-opacity duration-200 ${isShopOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
           <div className="w-full max-w-[900px]">
             <ShopOverlay onClose={handleShopClose} />
+          </div>
+        </div>
+      )}
+
+      {rankingMounted && (
+        <div className={`fixed inset-0 z-100 bg-black/70 flex items-center justify-center p-6 transition-opacity duration-200 ${isRankingOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
+          <div className="w-full max-w-[520px]">
+            <Window title="RANKING" variant="overlay" onClose={handleRankingClose} showMaximize={false}>
+              <div className="flex gap-2 mb-4">
+                {(["omok", "brick-breaker", "ping-pong"] as const).map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setRankingGameType(type)}
+                    className={`px-4 py-1.5 text-sm font-neo transition ${
+                      rankingGameType === type
+                        ? "bg-(--color-cyan) text-black font-bold"
+                        : "bg-black/40 text-white/60 hover:bg-(--color-cyan)/20 hover:text-white"
+                    }`}
+                  >
+                    {type === "omok" ? "오목" : type === "brick-breaker" ? "블록깨기" : "핑퐁"}
+                  </button>
+                ))}
+              </div>
+              <RankingBoard gameType={rankingGameType} />
+            </Window>
           </div>
         </div>
       )}

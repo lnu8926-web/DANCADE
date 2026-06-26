@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { getRankingsPage } from "@/lib/supabase/ranking";
+import { getRankingsPage, getRankingsCount } from "@/lib/supabase/ranking";
 
-interface RankingItem {
+export interface RankingItem {
   id: number;
   score: number;
   users: {
@@ -11,16 +11,41 @@ interface RankingItem {
   };
 }
 
-export default function RankingBoard({ gameType }: { gameType: string }) {
-  const [rankings, setRankings] = useState<RankingItem[]>([]);
+const PAGE_SIZE = 20;
+
+interface RankingBoardProps {
+  gameType: string;
+  initialRankings?: RankingItem[];
+  initialLoading?: boolean;
+  autoRotate?: boolean;
+  totalPages?: number;
+  fetchPage?: (gameType: string, page: number) => Promise<RankingItem[]>;
+  fetchTotalCount?: (gameType: string) => Promise<number>;
+}
+
+export default function RankingBoard({
+  gameType,
+  initialRankings,
+  initialLoading = false,
+  autoRotate = true,
+  totalPages: totalPagesProp,
+  fetchPage = getRankingsPage,
+  fetchTotalCount = getRankingsCount,
+}: RankingBoardProps) {
+  const [rankings, setRankings] = useState<RankingItem[]>(
+    initialRankings ?? []
+  );
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(initialLoading);
   const [isPageVisible, setIsPageVisible] = useState(true);
-  const totalPages = 5;
+  const [resolvedTotalPages, setResolvedTotalPages] = useState(
+    totalPagesProp ?? 1
+  );
   const cacheRef = useRef<
     Map<string, Map<number, { data: RankingItem[]; fetchedAt: number }>>
   >(new Map());
   const CACHE_TTL_MS = 30000;
+  const isStaticData = initialRankings !== undefined;
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -36,7 +61,30 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []);
 
+  // gameType이 바뀔 때마다 전체 건수를 가져와 totalPages 계산
   useEffect(() => {
+    if (isStaticData || totalPagesProp !== undefined) return;
+
+    setPage(1);
+
+    fetchTotalCount(gameType).then((count) => {
+      setResolvedTotalPages(Math.max(1, Math.ceil(count / PAGE_SIZE)));
+    });
+  }, [gameType, isStaticData, totalPagesProp, fetchTotalCount]);
+
+  useEffect(() => {
+    if (totalPagesProp !== undefined) {
+      setResolvedTotalPages(totalPagesProp);
+    }
+  }, [totalPagesProp]);
+
+  useEffect(() => {
+    if (isStaticData) {
+      setRankings(initialRankings);
+      setLoading(initialLoading);
+      return;
+    }
+
     let isMounted = true;
 
     const gameCache = cacheRef.current.get(gameType) ?? new Map();
@@ -58,7 +106,7 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
 
     setLoading(true);
 
-    getRankingsPage(gameType, page).then((data) => {
+    fetchPage(gameType, page).then((data) => {
       if (isMounted) {
         setRankings(data);
         setLoading(false);
@@ -69,17 +117,17 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
     return () => {
       isMounted = false;
     };
-  }, [page, gameType]);
+  }, [fetchPage, gameType, initialLoading, initialRankings, isStaticData, page]);
 
   useEffect(() => {
-    if (!isPageVisible) return;
+    if (!autoRotate || !isPageVisible) return;
 
     const interval = setInterval(() => {
-      setPage((prev) => (prev >= totalPages ? 1 : prev + 1));
+      setPage((prev) => (prev >= resolvedTotalPages ? 1 : prev + 1));
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [isPageVisible, totalPages]);
+  }, [autoRotate, isPageVisible, resolvedTotalPages]);
 
   const getMedalColor = (rank: number) => {
     if (rank === 1) return "🥇";
@@ -89,13 +137,13 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
   };
 
   return (
-    <div className="bg-(--color-dark-blue) border border-(--color-navy) p-6 w-full max-w-md font-neo">
+    <div className="bg-(--color-dark-blue) border border-(--color-navy) p-6 w-full font-neo">
       <h2 className="text-xl text-(--color-cyan) mb-4 text-center tracking-widest">
         🏆 랭킹 TOP 100
       </h2>
 
       <div className="text-center text-white/40 text-xs mb-4">
-        {page} / {totalPages}
+        {page} / {resolvedTotalPages}
       </div>
 
       <div className="space-y-2 min-h-[400px]">
@@ -103,9 +151,13 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
           <div className="text-center text-(--color-cyan)/60 py-8 text-sm">
             로딩 중...
           </div>
+        ) : rankings.length === 0 ? (
+          <div className="text-center text-white/40 py-8 text-sm">
+            랭킹 데이터가 없습니다.
+          </div>
         ) : (
           rankings.map((rank, index) => {
-            const rankNumber = (page - 1) * 20 + index + 1;
+            const rankNumber = (page - 1) * PAGE_SIZE + index + 1;
             return (
               <div
                 key={rank.id}
@@ -131,10 +183,12 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
       </div>
 
       {/* 진행 바 */}
+      {resolvedTotalPages > 1 && (
       <div className="mt-6 flex gap-2">
-        {[1, 2, 3, 4, 5].map((num) => (
+        {Array.from({ length: resolvedTotalPages }, (_, i) => i + 1).map((num) => (
           <button
             key={num}
+            type="button"
             onClick={() => setPage(num)}
             className={`h-1.5 flex-1 transition-all cursor-pointer ${
               page === num
@@ -144,22 +198,27 @@ export default function RankingBoard({ gameType }: { gameType: string }) {
           />
         ))}
       </div>
+      )}
 
       {/* 이전/다음 버튼 */}
-      <div className="mt-4 flex justify-between gap-4">
-        <button
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-          className="flex-1 py-2 border border-(--color-navy) text-white text-sm hover:border-(--color-cyan) hover:text-(--color-cyan) transition"
-        >
-          ◀ 이전
-        </button>
-        <button
-          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-          className="flex-1 py-2 border border-(--color-navy) text-white text-sm hover:border-(--color-cyan) hover:text-(--color-cyan) transition"
-        >
-          다음 ▶
-        </button>
-      </div>
+      {resolvedTotalPages > 1 && (
+        <div className="mt-4 flex justify-between gap-4">
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            className="flex-1 py-2 border border-(--color-navy) text-white text-sm hover:border-(--color-cyan) hover:text-(--color-cyan) transition"
+          >
+            ◀ 이전
+          </button>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(resolvedTotalPages, p + 1))}
+            className="flex-1 py-2 border border-(--color-navy) text-white text-sm hover:border-(--color-cyan) hover:text-(--color-cyan) transition"
+          >
+            다음 ▶
+          </button>
+        </div>
+      )}
     </div>
   );
 }

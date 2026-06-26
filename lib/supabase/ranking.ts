@@ -96,6 +96,16 @@ export async function getMyBestScore(
   return Math.floor(Math.random() * 5000) + 1000; // 테스트용
 }
 
+export async function getRankingsCount(gameType: string): Promise<number> {
+  const { count, error } = await supabase
+    .from("leaderboards")
+    .select("*", { count: "exact", head: true })
+    .eq("game_type", gameType);
+
+  if (error || count === null) return 0;
+  return count;
+}
+
 export async function getRankingsPage(
   gameType: string,
   page: number = 1
