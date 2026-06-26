@@ -1,9 +1,15 @@
 // game/managers/global/NPCManager.ts
 import { AvatarManager } from "@/game/managers/global/AvatarManager";
+import { NPC_CONFIG, NpcType } from "@/components/avatar/core/LpcNpc";
+import { MainScene } from "@/game/scenes/core/MainScene";
+
+const IDLE_INTERVAL = 12000;
+const IDLE_DURATION = 3500;
 
 export class NPCManager {
   private npcs: AvatarManager[] = [];
   private interactKey!: Phaser.Input.Keyboard.Key;
+  private idleTimers: Phaser.Time.TimerEvent[] = [];
 
   constructor(private scene: Phaser.Scene) {}
 
@@ -31,7 +37,41 @@ export class NPCManager {
 
     this.npcs.push(merchant, villager, gambler);
 
+    this.setupIdleMessages([
+      { npc: merchant, type: "MERCHANT", startDelay: 4000 },
+      { npc: villager, type: "VILLAGER", startDelay: 9000 },
+      { npc: gambler,  type: "EVENT",    startDelay: 14000 },
+    ]);
+
     console.log(`✅ NPC ${this.npcs.length}명 생성 완료`);
+  }
+
+  // =====================================================================
+  // 아이들 말풍선
+  // =====================================================================
+
+  private setupIdleMessages(entries: { npc: AvatarManager; type: NpcType; startDelay: number }[]): void {
+    const mainScene = this.scene as MainScene;
+
+    entries.forEach(({ npc, type, startDelay }) => {
+      const messages = NPC_CONFIG[type].idleMessages;
+      let index = 0;
+
+      const showNext = () => {
+        const msg = messages[index % messages.length];
+        index++;
+        mainScene.uiManager.showSpeechBubble(npc, msg, IDLE_DURATION);
+      };
+
+      const timer = this.scene.time.addEvent({
+        delay: IDLE_INTERVAL,
+        startAt: IDLE_INTERVAL - startDelay,
+        loop: true,
+        callback: showNext,
+      });
+
+      this.idleTimers.push(timer);
+    });
   }
 
   // =====================================================================
@@ -90,6 +130,10 @@ export class NPCManager {
     });
 
     this.npcs = [];
+
+    // 아이들 타이머 제거
+    this.idleTimers.forEach((t) => t.remove());
+    this.idleTimers = [];
 
     // 키 이벤트 리스너 제거
     if (this.interactKey) {

@@ -12,6 +12,8 @@ import { supabase } from "@/lib/supabase/client";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import type { LpcSprite } from "@/components/avatar/utils/LpcTypes";
 import { ASSET_PATHS } from "@/game/constants";
+import { NPC_CONFIG, type NpcType } from "@/components/avatar/core/LpcNpc";
+import { getUserDataFromLocal } from "@/lib/utils/auth";
 
 // Window 확장 타입 정의
 declare global {
@@ -157,6 +159,26 @@ export class MainScene extends BaseGameScene {
     const gambler = new AvatarManager(this).createNPC(1348, 592, "EVENT");
 
     this.npcManagers.push(merchant, villager, gambler);
+
+    // 아이들 말풍선 (12초마다 순환, NPC별로 시작 시간 분산)
+    ([
+      { npc: merchant, type: "MERCHANT" as NpcType, startDelay: 4000 },
+      { npc: villager, type: "VILLAGER" as NpcType, startDelay: 9000 },
+      { npc: gambler,  type: "EVENT"    as NpcType, startDelay: 14000 },
+    ] as const).forEach(({ npc, type, startDelay }) => {
+      const config = NPC_CONFIG[type];
+      let idx = 0;
+      this.time.addEvent({
+        delay: 12000,
+        startAt: Math.max(0, 12000 - startDelay),
+        loop: true,
+        callback: () => {
+          const isGuest = getUserDataFromLocal()?.isGuest ?? true;
+          const messages = isGuest ? config.idleMessagesGuest : config.idleMessages;
+          this.uiManager.showSpeechBubble(npc, messages[idx++ % messages.length], 3500);
+        },
+      });
+    });
 
     if (this.input.keyboard) {
       this.interactKey = this.input.keyboard!.addKey(
