@@ -21,10 +21,10 @@ export function GuestDataSection({
 
   if (!guestDataSelected) {
     return (
-      <div className="bg-(--color-pink)/10er-2 border-(--color-pink)/60ded-lg px-5 py-4 mb-6">
+      <div className="bg-(--color-pink)/10 border-2 border-(--color-pink)/60 rounded-lg px-5 py-4 mb-6">
         <div className="flex flex-col gap-3">
           <div>
-            <p className="text-sm text-(--color-pink)-bold mb-2">
+            <p className="text-sm text-(--color-pink) font-bold mb-2">
               ✨ 게스트 데이터 불러오기
             </p>
             {guestPoints > 0 && (

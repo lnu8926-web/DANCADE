@@ -2,21 +2,26 @@
 
 import { ButtonHTMLAttributes } from "react";
 
-interface LoginButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface PixelButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   label: string;
   styleClass: string;
   textColor?: string;
   isLoading?: boolean;
+  loadingLabel?: string;
+  fullWidth?: boolean;
 }
 
-export default function LoginButton({
+export function PixelButton({
   label,
   styleClass,
   textColor = "",
   isLoading = false,
+  loadingLabel = "처리 중...",
+  fullWidth = true,
   disabled,
+  className = "",
   ...props
-}: LoginButtonProps) {
+}: PixelButtonProps) {
   return (
     <button
       {...props}
@@ -24,11 +29,13 @@ export default function LoginButton({
       className={`
         ${styleClass}
         ${textColor}
-        py-5 max-w-[320px] w-full
+        py-5
+        ${fullWidth ? "max-w-[320px] w-full" : ""}
         cursor-pointer
         transition-all duration-200
         disabled:opacity-50 disabled:cursor-not-allowed
         focus:outline-none focus:ring-2 focus:ring-(--color-cyan) focus:ring-offset-2
+        ${className}
       `}
       aria-busy={isLoading}
     >
@@ -54,7 +61,7 @@ export default function LoginButton({
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             />
           </svg>
-          로그인 중...
+          {loadingLabel}
         </span>
       ) : (
         label
@@ -62,3 +69,5 @@ export default function LoginButton({
     </button>
   );
 }
+
+export default PixelButton;

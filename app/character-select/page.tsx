@@ -112,7 +112,7 @@ export default function CharacterSelect() {
       <div className="w-full">
         <div className="flex w-full  text-white font-neo">
           <div className="w-1/2 flex flex-col items-center justify-center p-10">
-            <div className="w-[400px] h-[400px] border-[3px] border-[#555] rounded-[10px] bg-[#2d2d2d] overflow-hidden relative">
+            <div className="w-[400px] h-[400px] border-[3px] border-(--color-slate-gray) rounded-lg bg-(--color-midnight) overflow-hidden relative">
               {isAssetLoading && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>

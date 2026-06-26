@@ -2,7 +2,7 @@
 
 type InventoryProps = {
   name: string;
-  imageUrl: string;
+  imageUrl?: string;
   isEquipped: boolean;
   onClick?: () => void;
 };

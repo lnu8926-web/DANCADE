@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRegisterForm } from "@/hooks/auth/useRegisterForm";
+import { PixelButton } from "@/components/common/LoginButton";
 import { GuestDataSection } from "./GuestDataSection";
 import { FormField, PasswordConfirmField } from "./FormField";
 
@@ -164,16 +165,18 @@ export default function RegisterForm({
 
       <div className="button-group flex gap-3 mt-8 justify-end">
         {onCancel ? (
-          <button
+          <PixelButton
             type="button"
+            label="취소"
+            styleClass="pixelBtn pixelBtn--gray"
+            textColor="text-black font-bold"
+            fullWidth={false}
             onClick={() => {
               unlockInput();
               onCancel();
             }}
-            className="pixelBtn pixelBtn--gray text-black font-bold px-6 py-3 cursor-pointer hover:opacity-90 transition-opacity"
-          >
-            취소
-          </button>
+            className="px-6 py-3 hover:opacity-90"
+          />
         ) : (
           <Link
             href="/auth/login/id"
@@ -184,13 +187,17 @@ export default function RegisterForm({
           </Link>
         )}
 
-        <button
+        <PixelButton
           type="submit"
+          label="회원가입"
+          styleClass="pixelBtn pixelBtn--pink"
+          textColor="text-black font-bold"
+          isLoading={isLoading}
+          loadingLabel="가입 중..."
+          fullWidth={false}
           disabled={!isValid || isLoading}
-          className="pixelBtn pixelBtn--pink text-black font-bold px-6 py-3 cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoading ? "가입 중..." : "회원가입"}
-        </button>
+          className="px-6 py-3 hover:opacity-90"
+        />
       </div>
     </form>
   );

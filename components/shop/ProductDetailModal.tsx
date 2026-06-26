@@ -7,7 +7,7 @@ interface Props {
   product: Product;
   onClose: () => void;
   onPurchase: (product: Product) => void;
-   isPurchasing: boolean;
+  isPurchasing: boolean;
 }
 
 export default function ProductDetailModal({
@@ -20,16 +20,14 @@ export default function ProductDetailModal({
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
       <Window
         title="아이템 정보"
-       variant="modal"
+        variant="modal"
+        onClose={onClose}
         showMaximize={false}
         className="relative"
       >
         {/* 내용 영역 */}
         <div className="w-full flex flex-col gap-6 text-white">
-
-          <h2 className="text-xl font-bold text-center">
-            {product.name}
-          </h2>
+          <h2 className="text-xl font-bold text-center">{product.name}</h2>
 
           <p className="text-sm text-white/70 text-center leading-relaxed">
             {product.description ?? "설명 없음"}
@@ -43,6 +41,7 @@ export default function ProductDetailModal({
           <div className="flex gap-3 pt-4">
             {product.isOwned ? (
               <button
+                type="button"
                 disabled
                 className="
                   flex-1 py-2
@@ -55,6 +54,7 @@ export default function ProductDetailModal({
               </button>
             ) : (
               <button
+                type="button"
                 onClick={() => onPurchase(product)}
                 disabled={isPurchasing}
                 className="
@@ -71,6 +71,7 @@ export default function ProductDetailModal({
             )}
 
             <button
+              type="button"
               onClick={onClose}
               className="
                 flex-1 py-2

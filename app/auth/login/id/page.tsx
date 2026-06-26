@@ -7,6 +7,8 @@ import logo from "@/public/assets/logos/logo.svg";
 import brickBreaker from "@/public/assets/screenshots/brick-breaker.png";
 import pingPong from "@/public/assets/screenshots/ping-pong.png";
 import Window from "@/components/common/Window";
+import { PixelButton } from "@/components/common/LoginButton";
+import { FormField } from "@/components/auth/FormField";
 import { useAuth } from "@/hooks/auth/useAuth";
 import { useGuestAuth } from "@/hooks/useGuestAuth";
 import { useLogin } from "@/hooks/auth/useLogin";
@@ -93,67 +95,44 @@ export default function LoginIdPage() {
             className="login-form w-full max-w-[550px] px-5 py-6 bg-white border-box"
             onSubmit={handleSubmit}
           >
-            <div>
-              {/* 아이디 */}
-              <div className="form-field mb-6 flex flex-col lg:flex-row lg:items-center">
-                <label
-                  htmlFor="username"
-                  className="text-black lg:w-[125px] text-lg"
-                >
-                  아이디
-                </label>
-                <input
-                  id="username"
-                  type="text"
-                  value={formData.username}
-                  onChange={handleChange}
-                  placeholder="아이디를 입력하세요."
-                  autoComplete="username"
-                  disabled={isAuthLoading}
-                  className="w-full py-4 px-4 border border-(--color-navy)
-                             placeholder:text-slate-gray text-black 
-                             focus:outline-none focus:ring-0
-                             disabled:bg-gray-100 disabled:cursor-not-allowed"
-                />
-              </div>
+            <div className="space-y-6">
+              <FormField
+                id="username"
+                label="아이디"
+                type="text"
+                value={formData.username}
+                onChange={handleChange}
+                placeholder="아이디를 입력하세요."
+                autoComplete="username"
+                disabled={isAuthLoading}
+                requiredIndicator={false}
+              />
 
-              {/* 비밀번호 */}
-              <div className="form-field flex flex-col lg:flex-row lg:items-center">
-                <label
-                  htmlFor="password"
-                  className="text-black lg:w-[125px] text-lg"
-                >
-                  비밀번호
-                </label>
-                <div className="w-full relative">
-                  <input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="비밀번호를 입력하세요."
-                    autoComplete="current-password"
-                    disabled={isAuthLoading}
-                    className="w-full py-4 px-4 pr-12 border border-(--color-navy) 
-                               placeholder:text-slate-gray text-black 
-                               focus:outline-none focus:ring-0
-                               disabled:bg-gray-100 disabled:cursor-not-allowed"
-                  />
+              <FormField
+                id="password"
+                label="비밀번호"
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="비밀번호를 입력하세요."
+                autoComplete="current-password"
+                disabled={isAuthLoading}
+                requiredIndicator={false}
+                rightElement={
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={isAuthLoading}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors disabled:cursor-not-allowed"
+                    className="px-3 border border-(--color-navy) border-l-0 text-gray-600 hover:text-gray-800 transition-colors disabled:cursor-not-allowed"
                     title={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
                   >
                     {showPassword ? "👁️" : "👁️‍🗨️"}
                   </button>
-                </div>
-              </div>
+                }
+              />
 
-              {/* 에러 메시지 */}
               {errorMessage && (
-                <p className="text-left text-(--color-pink) mt-3">
+                <p className="text-left text-(--color-pink)">
                   {errorMessage}
                 </p>
               )}
@@ -162,35 +141,43 @@ export default function LoginIdPage() {
             {/* 버튼 영역 */}
             <div className="flex justify-between items-center mt-6">
               {/* 왼쪽: 게스트 로그인 */}
-              <button
+              <PixelButton
                 type="button"
+                label="게스트 로그인"
+                styleClass="pixelBtn pixelBtn--pink"
+                textColor="text-black font-bold"
+                fullWidth={false}
+                className="login-button px-6 py-3"
                 onClick={() => {
                   getOrCreateGuestUser();
                   router.push("/character-select");
                 }}
                 disabled={isAuthLoading}
-                className="login-button pixelBtn pixelBtn--pink cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                게스트 로그인
-              </button>
+              />
 
               {/* 오른쪽: 아이디 로그인, 회원가입 */}
               <div className="flex gap-3">
-                <button
+                <PixelButton
                   type="submit"
+                  label="로그인"
+                  styleClass="pixelBtn pixelBtn--cyan"
+                  textColor="text-black font-bold"
+                  isLoading={isAuthLoading}
+                  loadingLabel="로그인 중..."
+                  fullWidth={false}
+                  className="login-button px-6 py-3"
                   disabled={isAuthLoading}
-                  className="login-button pixelBtn pixelBtn--cyan cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isAuthLoading ? "로그인 중..." : "로그인"}
-                </button>
-                <button
+                />
+                <PixelButton
                   type="button"
+                  label="회원 가입"
+                  styleClass="pixelBtn pixelBtn--cyan"
+                  textColor="text-black font-bold"
+                  fullWidth={false}
+                  className="login-button px-6 py-3"
                   onClick={() => router.push("/auth/register")}
                   disabled={isAuthLoading}
-                  className="login-button pixelBtn pixelBtn--cyan cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  회원 가입
-                </button>
+                />
               </div>
             </div>
           </form>

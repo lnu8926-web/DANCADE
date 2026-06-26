@@ -1,4 +1,4 @@
-export { default as LoginButton } from "./LoginButton";
+export { default as LoginButton, PixelButton } from "./LoginButton";
 export { default as ToastContainer } from "./ToastContainer";
 export { ToastProvider } from "./ToastProvider";
 export { default as TransparentFrame } from "./TransparentFrame";

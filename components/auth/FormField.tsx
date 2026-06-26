@@ -8,6 +8,7 @@ interface FormFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   showStatusWhen?: boolean;
   minLengthHint?: { length: number; message: string };
   isModal?: boolean;
+  requiredIndicator?: boolean;
   rightElement?: ReactNode;
 }
 
@@ -20,11 +21,12 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
       showStatusWhen = true,
       minLengthHint,
       isModal = false,
+      requiredIndicator = true,
       rightElement,
       value,
       ...inputProps
     },
-    ref
+    ref,
   ) => {
     const inputValue = value as string | undefined;
     const showError = error && inputValue;
@@ -46,8 +48,13 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
           }`}
         >
           <span className="inline-block bg-(--color-pink)/10 px-3 py-2 rounded-md lg:bg-transparent lg:px-0 lg:py-0">
-            {label}{" "}
-            <span className="text-(--color-pink)-bold">*</span>
+            {label}
+            {requiredIndicator && (
+              <>
+                {" "}
+                <span className="text-(--color-pink) font-bold">*</span>
+              </>
+            )}
           </span>
         </label>
         <div className="w-full">
@@ -58,15 +65,16 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
               className={`${
                 rightElement ? "flex-1" : "w-full"
               } py-4 px-4 border border-(--color-navy)
-                placeholder:text-slate-gray text-black 
-                focus:outline-none focus:ring-0`}
+                placeholder:text-slate-gray text-black
+                focus:outline-none focus:ring-0
+                disabled:bg-gray-100 disabled:cursor-not-allowed`}
               {...inputProps}
             />
             {rightElement}
           </div>
 
           {showError && (
-            <p className="text-left text-(--color-pink)-sm mt-2">
+            <p className="text-left text-(--color-pink) text-sm mt-2">
               {error}
             </p>
           )}
@@ -74,7 +82,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
           {showStatus && (
             <p
               className={`text-left text-sm mt-2 ${getStatusColor(
-                checkStatus
+                checkStatus,
               )}`}
             >
               {getStatusMessage(checkStatus)}
@@ -89,7 +97,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
         </div>
       </div>
     );
-  }
+  },
 );
 
 FormField.displayName = "FormField";
@@ -127,41 +135,59 @@ interface PasswordFieldProps extends Omit<FormFieldProps, "label"> {
 export const PasswordConfirmField = forwardRef<
   HTMLInputElement,
   PasswordFieldProps
->(({ labelLines, isModal = false, error, value, ...inputProps }, ref) => {
-  const inputValue = value as string | undefined;
+>(
+  (
+    {
+      labelLines,
+      isModal = false,
+      error,
+      value,
+      requiredIndicator = true,
+      ...inputProps
+    },
+    ref,
+  ) => {
+    const inputValue = value as string | undefined;
 
-  return (
-    <div className="form-field flex flex-col lg:flex-row lg:items-start">
-      <label
-        htmlFor={inputProps.id}
-        className={`text-black mb-2 lg:mb-0 font-bold text-base lg:text-lg ${
-          isModal ? "w-full lg:w-[100px]" : "lg:w-[140px]"
-        }`}
-      >
-        <span className="inline-block bg-(--color-pink)/10 py-2 rounded-md lg:bg-transparent lg:px-0 lg:py-0">
-          {labelLines[0]}
-          <br className="hidden lg:block" />
-          {labelLines[1]}{" "}
-          <span className="text-(--color-pink) font-bold">*</span>
-        </span>
-      </label>
-      <div className="w-full">
-        <input
-          ref={ref}
-          value={value}
-          className="w-full py-4 px-4 border border-(--color-navy)
-              placeholder:text-slate-gray text-black 
-              focus:outline-none focus:ring-0"
-          {...inputProps}
-        />
-        {error && inputValue && (
-          <p className="text-left text-(--color-pink) text-sm mt-2">
-            {error}
-          </p>
-        )}
+    return (
+      <div className="form-field flex flex-col lg:flex-row lg:items-start">
+        <label
+          htmlFor={inputProps.id}
+          className={`text-black mb-2 lg:mb-0 font-bold text-base lg:text-lg ${
+            isModal ? "w-full lg:w-[100px]" : "lg:w-[140px]"
+          }`}
+        >
+          <span className="inline-block bg-(--color-pink)/10 px-3 py-2 rounded-md lg:bg-transparent lg:px-0 lg:py-0">
+            {labelLines[0]}
+            <br className="hidden lg:block" />
+            {labelLines[1]}
+            {requiredIndicator && (
+              <>
+                {" "}
+                <span className="text-(--color-pink) font-bold">*</span>
+              </>
+            )}
+          </span>
+        </label>
+        <div className="w-full">
+          <input
+            ref={ref}
+            value={value}
+            className="w-full py-4 px-4 border border-(--color-navy)
+              placeholder:text-slate-gray text-black
+              focus:outline-none focus:ring-0
+              disabled:bg-gray-100 disabled:cursor-not-allowed"
+            {...inputProps}
+          />
+          {error && inputValue && (
+            <p className="text-left text-(--color-pink) text-sm mt-2">
+              {error}
+            </p>
+          )}
+        </div>
       </div>
-    </div>
-  );
-});
+    );
+  },
+);
 
 PasswordConfirmField.displayName = "PasswordConfirmField";

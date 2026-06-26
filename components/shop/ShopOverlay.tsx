@@ -149,17 +149,12 @@ export default function ShopOverlay({ onClose }: ShopOverlayProps) {
 
         <section className="flex-1 flex flex-col gap-4 min-h-0">
           <div className="h-[512px]">
-            {isLoading || ownedLoading ? (
-              <div className="flex items-center justify-center h-full text-(--color-cyan) text-sm tracking-widest">
-                LOADING...
-              </div>
-            ) : (
-              <ProductList
-                products={pagedProducts}
-                onSelect={handlePreviewItem}
-                onBuy={handleBuyProduct}
-              />
-            )}
+            <ProductList
+              products={pagedProducts}
+              onSelect={handlePreviewItem}
+              onBuy={handleBuyProduct}
+              isLoading={isLoading || ownedLoading}
+            />
           </div>
 
           <div className="flex justify-center gap-4 py-2">
