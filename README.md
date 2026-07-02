@@ -279,17 +279,28 @@ npm run server   # Socket.io 서버 (포트 3001)
 프로젝트 루트에 `.env.local` 파일 생성:
 
 ```env
-# Supabase
+# 필수: Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-# Socket.io 서버
-PORT=3001
+# 로컬 개발: Next.js ↔ Socket.io 연결
+NEXT_PUBLIC_SOCKET_URL=http://localhost:3101
+SOCKET_SERVER_PORT=3101
+CORS_ORIGINS=http://localhost:3002
+NEXT_API_URL=http://localhost:3002
 
-# OpenAI (GPT-4o-mini AI 분석)
+# 선택: AI 분석 및 채팅 필터링
 OPENAI_API_KEY=your_openai_key
+PERSPECTIVE_API_KEY=your_perspective_api_key
+
+# 선택: 탁구 온라인 모드
+ENABLE_PINGPONG_ONLINE=false
 ```
+
+> `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`, `PERSPECTIVE_API_KEY`는 클라이언트 코드나 공개 저장소에 노출하지 마세요.
+>
+> 배포 환경에서는 `NEXT_API_URL` 대신 `NEXT_PUBLIC_APP_URL` 또는 `APP_URL`로 Next.js 서버 주소를 지정할 수 있습니다.
 
 ---
 
